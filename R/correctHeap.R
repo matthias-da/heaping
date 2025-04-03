@@ -80,7 +80,7 @@
 
 #' @return a numeric vector without age heaps
 #' @export
-correctHeaps2 <- function(x, heaps="10year", method="lnorm",start=0, fixed=NULL, 
+correctHeaps2 <- function(x, heaps="10year", method="lnorm", start=0, fixed=NULL, 
                           model = NULL, dataModel = NULL) {
   if ( !method %in% c("lnorm","norm","unif")) {
     stop("unsupported value in argument 'method'!\n")
@@ -257,7 +257,6 @@ correctHeaps2 <- function(x, heaps="10year", method="lnorm",start=0, fixed=NULL,
       
       return(adjusted_x)
     }
-    
     x <- adjust_signs(xorig, x)
   }
   return(x)
