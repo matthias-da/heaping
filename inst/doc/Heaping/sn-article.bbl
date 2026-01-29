@@ -61,7 +61,7 @@ vol. \bseriesno{4}.
 \bibitem[\protect\citeauthoryear{{Economic~and~social~commission~for~Western~Asia~(ESCWA)}}{2013}]{un13}
 \begin{botherref}
 \oauthor{\bsnm{{Economic~and~social~commission~for~Western~Asia~(ESCWA)}}}:
-A study of age reporting in selected arab censuses of population.
+A study of age reporting in selected {Arab} censuses of population.
 Technical report,
 United Nations, New York
 (2013)
@@ -69,15 +69,15 @@ United Nations, New York
 \endbibitem
 
 %%% 3
-\bibitem[\protect\citeauthoryear{Seiver}{1978}]{seiver78}
+\bibitem[\protect\citeauthoryear{Seiver}{1979}]{seiver78}
 \begin{barticle}
-\bauthor{\bsnm{Seiver}, \binits{D.}}:
-\batitle{Note on the measurement of income inequality with interval data
-  (revised)}.
-\bjtitle{International Association for Research in Income and Wealth}
-\bvolume{25},
+\bauthor{\bsnm{Seiver}, \binits{D.A.}}:
+\batitle{A note on the measurement of income inequality with interval data}.
+\bjtitle{Review of Income and Wealth}
+\bvolume{25}(\bissue{2}),
 \bfpage{229}--\blpage{233}
-(\byear{1978})
+(\byear{1979})
+\doiurl{10.1111/j.1475-4991.1979.tb00097.x}
 \end{barticle}
 \endbibitem
 
@@ -200,16 +200,20 @@ Accessed: 10.09.2024
 
 %%% 12
 \bibitem[\protect\citeauthoryear{Kannisto}{1999}]{kannisto1999}
-\begin{barticle}
+\begin{bchapter}
 \bauthor{\bsnm{Kannisto}, \binits{V.}}:
-\batitle{Assessing the information on age at death of old persons in national
+\bctitle{Assessing the information on age at death of old persons in national
   vital statistics}.
-\bjtitle{Validation of Exceptional Longevity, Odense Monographs on Population
-  Aging}
-\bvolume{6},
-\bfpage{235}--\blpage{249}
+In: \beditor{\bsnm{Jeune}, \binits{B.}},
+\beditor{\bsnm{Vaupel}, \binits{J.W.}} (eds.)
+\bbtitle{Validation of Exceptional Longevity}.
+\bsertitle{Odense Monographs on Population Aging},
+vol. \bseriesno{6},
+pp. \bfpage{235}--\blpage{249}.
+\bpublisher{Odense University Press},
+\blocation{Odense}
 (\byear{1999})
-\end{barticle}
+\end{bchapter}
 \endbibitem
 
 %%% 13
@@ -308,8 +312,7 @@ pp. \bfpage{125}--\blpage{173}.
 \bauthor{\bsnm{Meindl}, \binits{B.}},
 \bauthor{\bsnm{Kowarik}, \binits{A.}},
 \bauthor{\bsnm{Dupriez}, \binits{O.}}:
-\batitle{{simPop}: An {R} package for stochastic microsimulation of population
-  data}.
+\batitle{Simulation of synthetic complex data: The {R} package {simPop}}.
 \bjtitle{Journal of Statistical Software}
 \bvolume{79}(\bissue{10}),
 \bfpage{1}--\blpage{38}
@@ -364,13 +367,14 @@ vol. \bseriesno{3}.
 
 %%% 23
 \bibitem[\protect\citeauthoryear{Karup}{1903}]{karup1903}
-\begin{botherref}
-\oauthor{\bsnm{Karup}, \binits{J.}}:
-{{\"{U}ber eine neue mechanische Ausgleichungsmethode}}.
-Transactions of the Second International Actuarial Congress,
-31--77
-(1903)
-\end{botherref}
+\begin{bchapter}
+\bauthor{\bsnm{Karup}, \binits{J.}}:
+\bctitle{{{\"{U}ber eine neue mechanische Ausgleichungsmethode}}}.
+In: \bbtitle{Transactions of the Second International Actuarial Congress},
+\bconflocation{London},
+pp. \bfpage{31}--\blpage{77}
+(\byear{1903})
+\end{bchapter}
 \endbibitem
 
 %%% 24
