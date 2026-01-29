@@ -1,0 +1,54 @@
+#' heaping: Correction of Heaping on Individual Level
+#'
+#' Provides methods for correcting heaping (digit preference) in survey data
+#' at the individual record level. Age heaping, where respondents
+#' disproportionately report ages ending in 0 or 5, is a common phenomenon that
+#' can distort demographic analyses.
+#'
+#' @section Main Functions:
+#' \describe{
+#'   \item{\code{\link{correctHeaps}}}{Correct regular age heaping patterns
+#'     (5-year or 10-year intervals)}
+#'   \item{\code{\link{correctSingleHeap}}}{Correct a specific single age heap}
+#' }
+#'
+#' @section Methodology:
+#' Unlike traditional smoothing methods that only correct aggregated statistics,
+#' this package corrects individual values by replacing a calculated proportion
+#' of heaped observations with draws from fitted truncated distributions
+#' (log-normal, normal, or uniform).
+#'
+#' The correction ratio is determined by comparing the count at each heap to
+#' the mean of neighboring ages. Observations exceeding this expected ratio
+#' are randomly selected and replaced with values drawn from truncated
+#' distributions fitted to the original data.
+#'
+#' @section Model-Based Correction:
+#' An optional model-based adjustment using random forests can be applied to
+#' ensure that corrected values respect relationships with other variables
+#' in the dataset. This requires the \pkg{ranger} and \pkg{VIM} packages.
+#'
+#' @section Multiple Imputation:
+#' Repeated calls to the correction functions can be used to implement
+#' multiple imputation, properly reflecting the uncertainty from the
+#' correction process.
+#'
+#' @references
+#' Templ, M. (2024). Correction of heaping on individual level.
+#' \emph{Journal TBD}.
+#'
+#' Templ, M., Meindl, B., Kowarik, A., Alfons, A., Dupriez, O. (2017).
+#' Simulation of Synthetic Populations for Survey Data Considering Auxiliary
+#' Information. \emph{Journal of Statistical Software}, \strong{79}(10), 1-38.
+#' \doi{10.18637/jss.v079.i10}
+#'
+#' @author Matthias Templ \email{matthias.templ@@fhnw.ch}
+#'
+#' @docType package
+#' @name heaping-package
+#' @aliases heaping
+#'
+#' @importFrom stats setNames rnorm plogis predict
+#' @importFrom fitdistrplus fitdist
+#' @importFrom EnvStats rlnormTrunc rnormTrunc
+"_PACKAGE"

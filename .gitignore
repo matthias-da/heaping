@@ -1,3 +1,8 @@
+.Rbuildignore
+.claude/
+.DS_Store
+CLAUDE.md
+Rplots.pdf
 # History files
 .Rhistory
 .Rapp.history

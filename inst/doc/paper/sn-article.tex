@@ -1,0 +1,914 @@
+%Version 3 December 2023
+% See section 11 of the User Manual for version history
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                                                 %%
+%% Please do not use \input{...} to include other tex files.       %%
+%% Submit your LaTeX manuscript as one .tex document.              %%
+%%                                                                 %%
+%% All additional figures and files should be attached             %%
+%% separately and not embedded in the \TeX\ document itself.       %%
+%%                                                                 %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%\documentclass[referee,sn-basic]{sn-jnl}% referee option is meant for double line spacing
+
+%%=======================================================%%
+%% to print line numbers in the margin use lineno option %%
+%%=======================================================%%
+
+%%\documentclass[lineno,sn-basic]{sn-jnl}% Basic Springer Nature Reference Style/Chemistry Reference Style
+
+%%======================================================%%
+%% to compile with pdflatex/xelatex use pdflatex option %%
+%%======================================================%%
+
+%%\documentclass[pdflatex,sn-basic]{sn-jnl}% Basic Springer Nature Reference Style/Chemistry Reference Style
+
+
+%%Note: the following reference styles support Namedate and Numbered referencing. By default the style follows the most common style. To switch between the options you can add or remove Numbered in the optional parenthesis. 
+%%The option is available for: sn-basic.bst, sn-vancouver.bst, sn-chicago.bst%  
+ 
+%%\documentclass[pdflatex,sn-nature]{sn-jnl}% Style for submissions to Nature Portfolio journals
+%%\documentclass[pdflatex,sn-basic]{sn-jnl}% Basic Springer Nature Reference Style/Chemistry Reference Style
+\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}% Math and Physical Sciences Numbered Reference Style 
+%%\documentclass[pdflatex,sn-mathphys-ay]{sn-jnl}% Math and Physical Sciences Author Year Reference Style
+%%\documentclass[pdflatex,sn-aps]{sn-jnl}% American Physical Society (APS) Reference Style
+%%\documentclass[pdflatex,sn-vancouver,Numbered]{sn-jnl}% Vancouver Reference Style
+%%\documentclass[pdflatex,sn-apa]{sn-jnl}% APA Reference Style 
+%%\documentclass[pdflatex,sn-chicago]{sn-jnl}% Chicago-based Humanities Reference Style
+
+%%%% Standard Packages
+%%<additional latex packages if required can be included here>
+
+\usepackage{graphicx}%
+\usepackage{multirow}%
+\usepackage{amsmath,amssymb,amsfonts}%
+\usepackage{amsthm}%
+\usepackage{mathrsfs}%
+\usepackage[title]{appendix}%
+\usepackage{xcolor}%
+\usepackage{textcomp}%
+\usepackage{manyfoot}%
+\usepackage{booktabs}%
+\usepackage{algorithm}%
+\usepackage{algorithmicx}%
+\usepackage{algpseudocode}%
+\usepackage{listings}%
+\usepackage{subcaption}%
+
+%%%%%=============================================================================%%%%
+%%%%  Remarks: This template is provided to aid authors with the preparation
+%%%%  of original research articles intended for submission to journals published 
+%%%%  by Springer Nature. The guidance has been prepared in partnership with 
+%%%%  production teams to conform to Springer Nature technical requirements. 
+%%%%  Editorial and presentation requirements differ among journal portfolios and 
+%%%%  research disciplines. You may find sections in this template are irrelevant 
+%%%%  to your work and are empowered to omit any such section if allowed by the 
+%%%%  journal you intend to submit to. The submission guidelines and policies 
+%%%%  of the journal take precedence. A detailed User Manual is available in the 
+%%%%  template package for technical guidance.
+%%%%%=============================================================================%%%%
+
+%% as per the requirement new theorem styles can be included as shown below
+\theoremstyle{thmstyleone}%
+\newtheorem{theorem}{Theorem}%  meant for continuous numbers
+%%\newtheorem{theorem}{Theorem}[section]% meant for sectionwise numbers
+%% optional argument [theorem] produces theorem numbering sequence instead of independent numbers for Proposition
+\newtheorem{proposition}[theorem]{Proposition}% 
+%%\newtheorem{proposition}{Proposition}% to get separate numbers for theorem and proposition etc.
+
+\theoremstyle{thmstyletwo}%
+\newtheorem{example}{Example}%
+\newtheorem{remark}{Remark}%
+
+\theoremstyle{thmstylethree}%
+\newtheorem{definition}{Definition}%
+
+\raggedbottom
+%%\unnumbered% uncomment this for unnumbered level heads
+
+\begin{document}
+
+\title[Correction of heaping on individual level]{Correction of heaping on individual level}
+
+%%=============================================================%%
+%% GivenName	-> \fnm{Joergen W.}
+%% Particle	-> \spfx{van der} -> surname prefix
+%% FamilyName	-> \sur{Ploeg}
+%% Suffix	-> \sfx{IV}
+%% \author*[1,2]{\fnm{Joergen W.} \spfx{van der} \sur{Ploeg} 
+%%  \sfx{IV}}\email{iauthor@gmail.com}
+%%=============================================================%%
+
+\author*[1]{\fnm{Matthias} \sur{Templ}}\email{matthias.templ@fhnw.ch}
+
+\affil*[1]{\orgdiv{Institute for Competitiveness and Communication}, \orgname{University of Applied Sciences and Arts Northwestern Switzerland}, \orgaddress{\street{Riggenbachstrasse 16}, \city{Olten}, \postcode{4600}, \state{Solothurn}, \country{Switzerland}}}
+
+%\affil[2]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{10587}, \state{State}, \country{Country}}}
+%
+%\affil[3]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{610101}, \state{State}, \country{Country}}}
+
+%%==================================%%
+%% Sample for unstructured abstract %%
+%%==================================%%
+
+\abstract{Heaping -- the tendency to report values at round numbers -- is a common phenomenon in survey data that can bias statistical analyses. Traditional correction methods smooth aggregated distributions but do not preserve individual-level data needed for regression modeling and longitudinal studies. This paper proposes a novel procedure for correcting heaping at the individual level by redistributing excess observations from heaped values using draws from truncated distributions (log-normal, normal, uniform, or kernel density estimates). A model-based variant incorporates covariate relationships to better preserve data structure. Simulation studies demonstrate that the proposed method effectively eliminates heaping, reducing Whipple index values from over 140 to approximately 100 (no heaping) and decreasing the mean absolute percentage error by up to 60\% compared to uncorrected data. Application to wage gap analysis using Blinder-Oaxaca decomposition shows that model-based correction achieves less than 2\% deviation from true coefficients, compared to over 10\% for naive correction. The methods are implemented in the R package \texttt{heaping}, providing accessible tools for researchers to correct heaping while maintaining individual-level data integrity for downstream analyses.}
+
+
+\keywords{heaping, age heaping, individual-level correction, truncated distributions, Whipple index}
+
+%%\pacs[JEL Classification]{D8, H51}
+
+%%\pacs[MSC Classification]{35A01, 65L10, 65L12, 65L20, 65L70}
+
+\maketitle
+
+\section{Introduction}\label{sec1}
+
+\subsection{The importance of data cleaning in statistical analysis}
+
+Data cleaning is a crucial step in ensuring the quality and reliability of any statistical analysis. Real-world data sets often contain errors, missing values, and inconsistencies that can distort the results. A specific example is age heaping, where individuals tend to round their ages to numbers ending in 0 or/and 5, requiring correction to reflect accurate age distributions.
+
+Clean data improves the accuracy of statistical models, leading to better predictions and more reliable outcomes. In data science, this process is formalized in methodologies such as CRISP-DM (Cross-Industry Standard Process for Data Mining), where data cleaning is a key part of the data preparation phase. This ensures that subsequent modeling is based on reliable data.
+
+
+\subsection{Heaping in data}
+
+When the population age pyramid is not known for the surveyed population of interest, the age distribution still needs to be corrected to account for heaping effects. This is particularly relevant in survey data where the true underlying distribution cannot be directly observed \citep{ewbank1981}.
+
+Heaping occurs when data values are disproportionately concentrated around certain points, typically due to rounding or preference for certain numbers. This phenomenon can appear in various types of data, whereby age heaping is often discussed in literature. Hereby, people often report ages ending in 0 or 5 more frequently than other ages. This can result from lack of precise age knowledge or rounding to familiar numbers. Another case is income heaping where individuals may round their income to the nearest thousand, ten thousand, or other significant figures, leading to peaks at these rounded values. In weight and height heaping people may round their weight or height to the nearest 5 or 10 units, causing concentrations at these values. There is also time heaping such as the duration of events or the timing of activities, that can exhibit heaping when people round to the nearest 5, 10, or 15 minutes. In some financial transactions, heaping may occur, when amounts in financial transactions (e.g. expenses, revenues) may show heaping at round figures (e.g. \$100, \$1,000).
+And there is measurement data heaping when values may be rounded to the nearest convenient unit, causing heaping.
+
+\subsection{Heaping avoidance and approaches to deal with heaping}
+
+There are three solutions to the problem, and the first two might not always be possible to apply. 
+
+The first one is based on education and public awareness by improving respondents' understanding of the importance of accurate reporting can reduce heaping.
+
+The second approach is based on methodological improvements by enhancing data collection methods, and training enumerators to avoid rounding can mitigate heaping effects.
+
+The third approach -- and content of this contribution -- is the correction of heaping. By addressing the accumulation of various types of data, researchers and policy makers can ensure more reliable and valid conclusions, leading to better informed decisions and resource allocation.
+
+
+
+\subsection{Reasons to Smooth Heaping Effects}
+
+One aim at accurate statistics, e.g. accurate counts of school-aged children ensure proper resource allocation, income data accuracy is crucial for tax policies, social benefits, and economic planning, and precise age data inform public health initiatives and resource distribution.
+
+Smoothing heaping effects is essential across different types of data to ensure accuracy and reliability. 
+
+
+\begin{itemize}
+    \item  
+    Age heaping artificially distorts the age structure of a population, resulting in inaccurate population pyramids and indicators, and leading to erroneous conclusions about demographic patterns in the population \citep{un13}.
+    Flawed age structures may also lead to inaccurate future population projections. Age data are used to calculate mortality, fertility, and other rates. Misreporting might bias these rates.
+    \item Misreported incomes can affect economic studies, tax policy planning, and social welfare assessments \citep{seiver78}. Income heaping can skew economic models and forecasts, affecting policy decisions. Income data supports economic indicators such as poverty rates, inequality measures, and economic growth statistics. Reliable income data are essential for studying economic behavior and market dynamics. 
+    \item Accurate age and weight data are vital in epidemiological research to identify disease patterns and show lower predictive validity \citep{stavrakantonaki17}.
+\end{itemize}
+
+
+
+
+
+
+
+\subsection{Indices to measure heaping}
+
+Heaping refers to the tendency of individuals to report numbers ending in specific digits.
+For age heaping, several indices exist. 
+For example, DemoTools \citep{aburto2022} include the Whipple \citep{spoorenberg2007}, Myers, Bachi \citep{bachi1951}, Coale-Li \citep{coale1991}, Noumbissi \citep{noumbissi1992}, Spoorenberg \citep{spoorenberg2007}, Jdanov \citep{jdanov2008}, and Kannisto \citep{kannisto1999} age-heaping indices. Although the exact interpretation of these indices may differ, they generally show a strong correlation when applied to the same data and age ranges \citep{aburto2022}. Therefore, for quickly assessing the level of heaping across a large dataset, it may not be necessary to use more than one or two indices \citep{aburto2022}.
+
+
+The most commonly used \citep{rasul23} and simplest to compute index is the original Whipple's index
+proposed by George Chandler Whipple (1866-1924). It is a well-established index for detecting and analyzing age heaping. 
+%\paragraph{The Sprague Multiplier Method:}
+% \noindent The Sprague Multiplier Method smooths population data to detect irregularities caused by age heaping. The method applies a set of multipliers to redistribute the observed frequencies across age intervals.
+% Let \( P(a) \) be the observed population at age \( a \). The Sprague multipliers are a set of coefficients \( S_i \) applied to the population counts over five-year age groups. The smoothed population \( P'(a) \) at age \( a \) is calculated as:
+% \[
+% P'(a) = \sum_{i=-2}^{2} S_i \cdot P(a+i)
+% \]
+% The Sprague multipliers are defined for different age intervals and ensure that the smoothed values align closely with the true age distribution. \\
+%\paragraph{The Whipple Index:}
+The Whipple Index quantifies the extent of age heaping by comparing the reported frequencies of ages ending in 0 and 5 to those ending in other digits. It is calculated for a specific age range, typically 23 to 62 years.
+
+Let \( P(a) \) represent the observed population at age \( a \). The Whipple Index \( W \) for the age range \( a = 23 \) to \( a = 62 \) is defined as:
+
+\[
+W = \frac{\sum_{a \in \{25,30,35,40,45,50,55,60\}} P(a)}{\frac{1}{5} \sum_{a=23}^{62} P(a)} \times 100
+\]
+
+The numerator sums the populations at all ages ending in 0 or 5 within the 
+range (eight ages: 25, 30, 35, 40, 45, 50, 55, 60). 
+The denominator represents the expected count at these ages under 
+a uniform distribution. Since the range 23--62 contains 40 single-year ages, 
+and 8 of these end in 0 or 5, we expect $8/40 = 1/5$ of the total 
+population to fall on these ages if there is no heaping. 
+Thus, dividing by $\frac{1}{5} \sum_{a=23}^{62} P(a)$ gives the 
+expected count, and the ratio (multiplied by 100) yields an index 
+where $W = 100$ indicates no heaping, reflecting an accurate age distribution \cite{un55}. 
+Values between 100 and 105 indicate very slight heaping, which is almost negligible. When the index is between 105 and 110, it suggests slight heaping that remains acceptable for high-quality data. Moderate heaping, represented by values between 110 and 125, shows a noticeable age rounding that could affect demographic analyzes. Strong heaping, indicated by an index between 125 and 175, signifies significant distortions, requiring cautious use of the data. Values above 175 reveal very strong heaping, rendering the data highly unreliable for demographic studies. See further details in \citep{shryock76}.
+
+%Mathematical Interpretation
+%
+% - \textbf{Whipple Index Value Interpretation}:
+%   - \( W = 100 \): No age heaping, perfectly uniform distribution.
+%   - \( 100 < W \leq 125 \): Mild age heaping.
+%   - \( 125 < W \leq 175 \): Moderate age heaping.
+%   - \( W > 175 \): Severe age heaping.
+
+% Example Application
+
+% Consider the observed populations at ages 23 to 62. Calculate the Whipple Index to determine the degree of age heaping.
+
+% \[
+% W = \frac{P(30) + P(35) + P(40) + P(45) + P(50) + P(55) + P(60)}{\frac{1}{5} \sum_{a=23}^{62} P(a)}
+% \]
+
+
+
+\subsection{Approaches to Correcting Heaping in Data}
+
+Heaping, the disproportionate concentration of data values around specific points, is a common issue across various types of data, including age, income, weight, and financial transactions. 
+The simplest way to analyze age-heaping is by assuming that the true numbers are rectangularly distributed over some age range that includes centered the age in question \citep{hobbs2004}.
+
+
+
+Correcting heaping is essential to ensure the accuracy and reliability of data analyses. 
+
+
+
+There are two principal methods for addressing heaping: correcting aggregated statistics and correcting individual values. Each method has its distinct advantages and applications.
+
+\subsubsection{Correcting Aggregated Statistics}
+
+The traditional approach to smoothing heaping effects involves correcting aggregated statistics such as age distributions, population pyramids, or income distributions. This method is particularly useful for high-level demographic and economic analyses where individual data points are not as critical.
+
+Statistical techniques like moving averages, kernel density estimation, or spline smoothing can be applied to smooth out observed distributions. For example, in demographic studies, adjustment factors derived from historical data or known demographic patterns can redistribute heaped counts across a plausible range of values. This approach ensures that the overall distribution follows expected patterns, which is crucial for reporting and policy-making.
+
+The simplicity and ease of implementation are significant advantages of this method. It is suitable for large-scale analyses where the focus is on aggregated data trends. However, this method may introduce bias if the adjustment factors or smoothing techniques are not appropriately chosen. Additionally, it does not correct individual records, which can be problematic for further detailed analyses or modeling.
+
+\subsubsection{Correcting Individual Values}
+
+A more granular approach involves correcting the individual data points in a dataset to produce a smoothed aggregated statistic. This method, although more complex, provides precise corrections at the individual level, making it ideal for detailed analyses and modeling.
+
+Model-based corrections use statistical models to estimate true values based on observed data. Bayesian methods or maximum likelihood estimation can infer the most probable true values. Simulation methods can also be employed, where corrected values are generated using distributions fitted to the non-heaped data, such as truncated normal or log-normal distributions. An alternative approach uses kernel density estimation to model the underlying distribution and correct for heaping \citep{kernelheaping}. Related methods for handling heaping effects in population data are also available in simulation packages such as simPop \citep{simpop}.
+
+This approach ensures that individual-level data are accurate, allowing for comprehensive analyses such as longitudinal studies, regression analysis, and other detailed examinations. The primary advantage of this method is its precision and flexibility, as the corrected data can be utilized for various tasks. However, it requires more sophisticated statistical techniques and computational resources, and its accuracy depends heavily on the quality and amount of data available.
+
+% \subsubsection{Hybrid Methods}
+
+% Combining both aggregated and individual correction methods can leverage the strengths of each. For instance, initial corrections can be applied to aggregated data to identify general patterns, followed by fine-tuning at the individual level. Iterative adjustment methods can iteratively adjust individual values and check against aggregated statistics until a satisfactory balance is achieved. Bayesian hierarchical models that incorporate both individual-level data and aggregated trends can also produce more accurate corrections.
+
+\subsubsection{Discussion}
+
+Both approaches -- correcting aggregated statistics and correcting individual values -- offer unique advantages and are suitable for different contexts. The choice of method depends on the specific needs of the analysis, the available data, and the computational resources. While aggregated corrections are simpler and more suitable for high-level analyses, individual corrections provide the precision needed for detailed studies and modeling.
+
+Smoothing heaping in data can be approached by either adjusting aggregated counts or changing individual observational values. The latter method, though more complex, offers several significant advantages:
+
+\begin{enumerate}
+\item Enhanced Data Accuracy for Individual-Level Analysis:
+   The correction of individual values ensures that each data point reflects a more accurate measure. This precision is crucial for individual-level analyses, such as regression modeling, longitudinal studies, and other statistical analyses that require accurate input data. For example, when ages are corrected individually, the resultant data set better represents the true age distribution, leading to more reliable outcomes in studies that use age as a predictor or outcome variable.
+\item Improved Flexibility in Data Usage:
+   The correction of individual data can be used across various analyses without the need for repeated smoothing of aggregated data. This flexibility is particularly beneficial in demographic research, where the same data set can be used for multiple purposes, such as calculating age-specific fertility rates, mortality rates, and other demographic indicators. Users can apply the corrected data directly in their models, ensuring consistency across different analyses and reducing the risk of introducing errors through repeated data manipulation.
+\item Better Detection and Correction of Anomalies:
+   The adjustment of individual values allows for the identification and correction of specific anomalies in the data set, which might be obscured when only aggregated data is smoothed. This detailed approach can uncover patterns and trends that are not apparent in aggregated data. For instance, correcting individual income values in a survey data set can reveal more accurate distributions of income inequality and poverty, which are critical for policy-making and economic research.
+\item Preservation of Data Granularity:
+   Individual-level correction maintains the granularity of the data, which is essential for detailed analysis. Aggregated smoothing methods can sometimes mask important variations within the data, leading to the loss of valuable information. Furthermore, detailed demographic studies, such as those that examine the effects of age-specific policies, benefit significantly from granular data that accurately reflect individual variations.
+\item Enhanced Data Integrity for Machine Learning Applications:
+   In machine learning and predictive modeling, the quality of the input data directly impacts the performance of the models. Correcting individual values ensures that the data fed into the models is accurate and reliable, leading to better model training and more robust predictions. For example, age or income data corrected at the individual level can improve the performance of predictive models in healthcare, finance, and social sciences.
+\item Consistency in Longitudinal Studies:
+   Longitudinal studies that track individuals over time require consistent and accurate data at each time point. Correcting individual values ensures that longitudinal data remain accurate throughout the study period, enhancing the validity of the study findings. This approach is particularly important in studies examining changes over time, such as aging studies, where precise age data is critical.
+\end{enumerate}
+
+
+Although smoothing aggregated counts can provide a quick fix for age heaping, adjusting individual observational values offers more precise, flexible, and reliable data for a wide range of analyses. This method preserves data granularity, enhances the accuracy of individual-level analyses, and improves the overall integrity of the data set, making it the preferred approach in many practical and research applications.
+
+% #### References
+
+% - Preston, S. H., Elo, I. T., & Stewart, Q. (1999). Effects of age misreporting on mortality estimates at older ages. Population Studies, 53(2), 165-177.
+% - Arriaga, E. E. (1968). New Life Tables for Latin American Populations in the Nineteenth and Twentieth Centuries. Population Monograph Series, No. 3. Berkeley: University of California Press.
+% - United Nations (1956). Manual III: Methods for Population Projections by Sex and Age. New York: United Nations.
+
+% These references highlight the importance of accurate individual-level data in demographic research and the benefits of precise data correction methods.
+
+
+Smoothing of aggregated statistics assumes age misreporting, not underreporting. If there is age/sex-specific underreporting, smoothing inappropriately spreads it out \citep{preston1999}.
+
+
+
+% ### References
+
+% 1. National Academies of Sciences, Engineering, and Medicine. (2023). Assessing the 2020 Census: Final Report. Washington, DC: The National Academies Press. doi:10.17226/27150.
+% 2. Riffe, T. (2021). Age-heaping indices with DemoTools. GitHub. [DemoTools](https://timriffe.github.io/DemoTools).
+% 3. Ewbank, D. C. (1981). Age Misreporting and Age-Selective Underenumeration: Sources, Patterns, and Consequences for Demographic Analysis. National Academy Press.
+
+
+% Methods that preserve the original total:
+%  The Carrier-Farrag and Karup-King-Newton
+% (Carrier and Farrag, 1959) formulas do not
+% separate the first or last 10-year age groups.
+%  The Arriaga (1968) formula.
+%  Arriaga’s “strong smoothing” formula doesn’t, but
+% the results can be adjusted to agree with the total
+% population over the range that is smoothed.
+% Methods that alter the total slightly:
+%  The United Nations method (1956, p. 12)
+
+
+
+\subsection{The Carrier-Farrag Formula for Smoothing Age Heaping}
+
+Age heaping is a common issue in demographic data, where ages ending in certain digits, typically 0 or 5, are over-reported. The Carrier-Farrag formula \citep{carrier1959} is a widely used method to smooth these heaping effects by redistributing the observed frequencies.
+
+Let \( N(a) \) represent the observed frequency at age \( a \). The Carrier-Farrag formula computes the smoothed frequency \( N'(a) \) as follows:
+
+\[
+N'(a) = \frac{N(a-1) + N(a) + N(a+1)}{3}
+\]
+
+This formula takes the average of the observed frequencies of age \( a \) and its immediate neighbors, ages \( a-1 \) and \( a+1 \), thereby reducing the peaks caused by heaping.
+
+Consider a dataset where the observed frequencies at ages 29, 30, and 31 are as follows:
+\[
+N(29) = 40, \quad N(30) = 100, \quad N(31) = 45
+\]
+
+Applying the Carrier-Farrag formula to smooth the frequency at age 30:
+
+\[
+N'(30) = \frac{N(29) + N(30) + N(31)}{3} = \frac{40 + 100 + 45}{3} \approx 61.67
+\]
+
+Thus, the smoothed frequency at age 30 is approximately 61.67, significantly reducing the heaping effect.
+
+
+
+The primary advantage of the Carrier-Farrag formula is its simplicity and computational efficiency, making it easy to apply to large datasets. It effectively smooths minor heaping, providing more accurate age distributions for demographic analysis. However, the formula only considers immediate neighbors, which might not sufficiently address severe heaping. Additionally, it assumes a relatively uniform distribution around the heaped ages, which may not always hold true in practice.
+
+In summary, while the Carrier-Farrag formula is a useful tool for correcting minor age heaping, it is essential to be aware of its limitations and consider complementary methods for more severe cases or non-uniform distributions.
+
+
+\subsection{The Arriaga Formula for Smoothing Age Heaping}
+
+Age heaping, where individuals disproportionately report ages ending in certain digits, can distort demographic analyses. The Arriaga formula \citep{arriaga1968} smooths these heaping effects by redistributing observed frequencies.
+
+Let \( N(a) \) be the observed frequency at age \( a \). The smoothed frequency \( N'(a) \) is calculated as:
+
+\[
+N'(a) = 0.25 \cdot N(a-2) + 0.5 \cdot N(a-1) + N(a) + 0.5 \cdot N(a+1) + 0.25 \cdot N(a+2)
+\]
+
+This formula averages the observed frequencies at age \( a \) with its two preceding and two succeeding ages, reducing the effect of heaping.
+
+
+Consider observed frequencies at ages 28, 29, 30, 31, and 32:
+\[
+N(28) = 30, \quad N(29) = 40, \quad N(30) = 100, \quad N(31) = 45, \quad N(32) = 35
+\]
+
+Applying the Arriaga formula to smooth the frequency at age 30:
+
+\[
+N'(30) = 0.25 \cdot N(28) + 0.5 \cdot N(29) + N(30) + 0.5 \cdot N(31) + 0.25 \cdot N(32)
+\]
+\[
+N'(30) = 0.25 \cdot 30 + 0.5 \cdot 40 + 100 + 0.5 \cdot 45 + 0.25 \cdot 35 = 7.5 + 20 + 100 + 22.5 + 8.75 = 158.75
+\]
+
+Thus, the smoothed frequency at age 30 is approximately 158.75.
+
+
+The Arriaga formula offers comprehensive smoothing by considering a broader range of neighboring ages, leading to more balanced corrections. It is advantageous for addressing severe heaping, but it assumes a relatively uniform true age distribution around heaped ages, which may not always be valid. Despite this, its simplicity and computational efficiency make it a valuable tool in demographic analyses.
+
+
+
+\subsection{The Karup-King-Newton Formula for Smoothing Age Heaping}
+
+Age heaping, the tendency of individuals to report ages ending in specific digits, can skew demographic analyses. The Karup-King-Newton formula \citep{karup1903} is a method used to smooth these heaping effects by redistributing observed frequencies.
+
+Let \( N(a) \) denote the observed frequency at age \( a \). The Karup-King-Newton formula smooths the frequency at age \( a \) by considering the observed frequencies of multiple neighboring ages. The smoothed frequency \( N'(a) \) is calculated as:
+
+\[
+N'(a) = \frac{1}{16} \left( N(a-2) + 4N(a-1) + 6N(a) + 4N(a+1) + N(a+2) \right)
+\]
+
+This formula provides a weighted average of the observed frequencies at age \( a \) and its two preceding and two succeeding ages, effectively reducing the heaping effect.
+
+
+Consider a dataset where the observed frequencies at ages 28, 29, 30, 31, and 32 are as follows:
+\[
+N(28) = 30, \quad N(29) = 40, \quad N(30) = 100, \quad N(31) = 45, \quad N(32) = 35
+\]
+
+Applying the Karup-King-Newton formula to smooth the frequency at age 30:
+
+\[
+N'(30) = \frac{1}{16} \left( N(28) + 4N(29) + 6N(30) + 4N(31) + N(32) \right)
+\]
+\[
+N'(30) = \frac{1}{16} \left( 30 + 4 \cdot 40 + 6 \cdot 100 + 4 \cdot 45 + 35 \right) = \frac{1}{16} \left( 30 + 160 + 600 + 180 + 35 \right) = \frac{1}{16} \cdot 1005 = 62.81
+\]
+
+Thus, the smoothed frequency at age 30 is approximately 62.81.
+
+
+The Karup-King-Newton formula offers a comprehensive smoothing technique by incorporating a range of neighboring ages, resulting in balanced corrections. Its primary advantage is the ability to distribute frequencies more equitably, improving the accuracy of demographic data. However, the formula assumes a relatively uniform distribution around the heaped ages, which may not always be the case. Despite this assumption, its simplicity and computational efficiency make it a valuable tool for smoothing age heaping in demographic analyses.
+
+
+\subsection{The United Nations Formula for Smoothing Age Heaping}
+
+The United Nations \citep{un1956} developed a formula for smoothing age heaping in demographic data. This method involves redistributing the observed frequencies to reduce the distortion caused by age heaping.
+
+Let \( N(a) \) represent the observed frequency at age \( a \). The UN formula for smoothing the frequency at age \( a \), denoted as \( N'(a) \), is given by:
+
+\[
+N'(a) = \frac{N(a-2) + 2N(a-1) + 3N(a) + 2N(a+1) + N(a+2)}{9}
+\]
+
+This formula averages the observed frequencies at age \( a \) with its two preceding and two succeeding ages, using specific weights to smooth the distribution effectively.
+
+Consider a dataset where the observed frequencies at ages 28, 29, 30, 31, and 32 are as follows:
+\[
+N(28) = 30, \quad N(29) = 40, \quad N(30) = 100, \quad N(31) = 45, \quad N(32) = 35
+\]
+
+Applying the UN formula to smooth the frequency at age 30:
+
+\[
+N'(30) = \frac{N(28) + 2N(29) + 3N(30) + 2N(31) + N(32)}{9}
+\]
+\[
+N'(30) = \frac{30 + 2 \cdot 40 + 3 \cdot 100 + 2 \cdot 45 + 35}{9} = \frac{30 + 80 + 300 + 90 + 35}{9} = \frac{535}{9} \approx 59.44
+\]
+
+Thus, the smoothed frequency at age 30 is approximately 59.44.
+
+The United Nations formula provides a balanced smoothing technique by considering a range of neighboring ages, resulting in a more accurate representation of the age distribution. Its primary advantage is the use of specific weights, which help in distributing frequencies more equitably. However, as with other smoothing methods, it assumes a relatively uniform distribution around the heaped ages, which may not always be accurate. Despite this, the formula is simple and computationally efficient, making it a valuable tool in demographic analyses.
+
+
+\section{Correction of heaping at individual level}
+
+\begin{algorithm}
+\caption{Correct Heaping}\label{alg:correctHeaps}
+\begin{algorithmic}[1]
+\Require $x$ (numeric vector), $heaps$ (interval: "5year", "10year", or numeric vector), $method$ (distribution: "lnorm", "norm", "unif", "kernel"), $start$ (starting value), $fixed$ (protected indices), $seed$ (for reproducibility), $na.action$ ("omit" or "fail")
+\Ensure Corrected numeric vector (or list if $verbose$ = TRUE)
+
+\If{$seed$ is provided}
+    \State Set random seed for reproducibility
+\EndIf
+
+\If{$na.action$ is "fail" and $x$ contains NA values}
+    \State \textbf{stop} with error
+\EndIf
+\State $na\_positions \gets$ indices of NA values in $x$
+\State $x_{work} \gets x$ with NA values removed
+
+\State $intervals \gets$ sequence from $start$ to $\max(x_{work})$ with step from $heaps$
+\State $counts \gets$ frequency table of $x_{work}$
+\State $keep \gets$ mean counts of adjacent ages for each interval
+\State $ratio \gets counts[interval] / keep[interval]$
+
+\If{$method$ is "lnorm"}
+    \State Fit log-normal distribution to $x_{work}$
+\ElsIf{$method$ is "kernel"}
+    \State Estimate kernel density from $x_{work}$
+\EndIf
+
+\For{each $interval$ in $intervals$ where $ratio > 1$}
+    \State $indices \gets$ positions where $x_{work} = interval$
+    \State $n_{correct} \gets \lceil |indices| - |indices|/ratio \rceil$
+    \State $candidates \gets indices$ excluding $fixed$
+    \State $selected \gets$ random sample of $n_{correct}$ from $candidates$
+    \State Define bounds: $[interval - b, interval + b]$ where $b$ depends on $heaps$
+    \State Draw replacements from truncated distribution within bounds
+    \State $x_{work}[selected] \gets$ replacement values
+\EndFor
+
+\State Restore NA values to original positions
+\State \Return corrected $x$ (with diagnostics if $verbose$ = TRUE)
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Interval Generation}
+
+Depending on the specified heaping interval, we generate a sequence of intervals. This sequence will be used to identify the ages at which heaping occurs and needs correction.
+
+- For 10-year intervals:
+  \[
+  \text{intervals} = \{start, start + 10, start + 20, \ldots, \max(x)\}
+  \]
+
+- For 5-year intervals:
+  \[
+  \text{intervals} = \{start, start + 5, start + 10, \ldots, \max(x)\}
+  \]
+
+\subsection{Count and Ratio Calculation}
+
+We first create a frequency table of the ages in the dataset to identify how many times each age appears. Let \( n \) be the total number of ages in the dataset, and let \( x_i \) represent the age at the \( i \)-th position in the dataset.
+
+- Count occurrences:
+  \[
+  \text{counts}(k) = \sum_{i=1}^{n} \mathbb{I}(x_i = k)
+  \]
+  where \( \mathbb{I} \) is the indicator function, which is 1 if the condition is true and 0 otherwise.
+
+Next, for each interval \( s \) (where \( s \) is an element of the intervals set), we calculate the mean count of the adjacent ages:
+\[
+\text{keep}(s) = \frac{1}{2} \left( \text{counts}(s-1) + \text{counts}(s+1) \right)
+\]
+
+- Ratio calculation:
+  \[
+  \text{ratio}(s) = \frac{\text{counts}(s)}{\text{keep}(s)}
+  \]
+
+\subsection{Distribution Fitting}
+
+Depending on the specified method, we fit the data to a certain distribution. This step is only necessary if the method is "lnorm" (log-normal).
+
+- Log-normal distribution fitting:
+  - Adjust the data to handle zeros:
+    \[
+    \text{data}' = \begin{cases} 
+    x_i & \text{if } x_i > 0 \\
+    0.01 & \text{if } x_i = 0
+    \end{cases}
+    \]
+  - Fit a log-normal distribution to the adjusted data. The probability density function (PDF) of a log-normal distribution is:
+    \[
+    f(x; \mu, \sigma) = \frac{1}{x\sigma\sqrt{2\pi}} \exp\left(-\frac{(\ln x - \mu)^2}{2\sigma^2}\right)
+    \]
+  - Determine the parameters \( \mu \) (mean of the logarithm of the data) and \( \sigma \) (standard deviation of the logarithm of the data).
+
+\subsection{Correction Process}
+
+For each interval \( s \), we follow these steps to correct the heaping:
+
+1. Identify indices:
+   \[
+   \text{indices}(s) = \{i \mid x_i = s\}
+   \]
+
+2. Sample size calculation:
+   \[
+   \text{sampleSize}(s) = \left\lceil \text{length}(\text{indices}(s)) - \frac{\text{length}(\text{indices}(s))}{\text{ratio}(s)} \right\rceil
+   \]
+   where \( \left\lceil \cdot \right\rceil \) denotes the ceiling function.
+
+3. Adjust ages within bounds:
+   - For "10year" heaps:
+     - Divide the sample size into two parts:
+       \[
+       \text{size1} = \left\lceil \frac{\text{sampleSize}(s)}{2} \right\rceil
+       \]
+       \[
+       \text{size2} = \text{sampleSize}(s) - \text{size1}
+       \]
+     - Define bounds for adjustment:
+       \[
+       \text{lowerBound1} = \max(s - 4, 0)
+       \]
+       \[
+       \text{upperBound1} = \min(s + 4, \max(x))
+       \]
+       \[
+       \text{lowerBound2} = \max(s - 5, 0)
+       \]
+       \[
+       \text{upperBound2} = \min(s + 5, \max(x))
+       \]
+     - Adjust ages based on the specified method within the defined bounds.
+
+   - For "5year" heaps:
+     - Define bounds for adjustment:
+       \[
+       \text{lowerBound} = \max(s - 2, 0)
+       \]
+       \[
+       \text{upperBound} = \min(s + 2, \max(x))
+       \]
+     - Adjust ages based on the specified method within the defined bounds.
+
+\subsection{Age Adjustment Based on Method}
+
+Four distribution methods are available for drawing replacement values:
+
+\paragraph{Log-normal distribution ("lnorm").} The default method fits a log-normal distribution to the observed data and draws from the truncated version:
+  \[
+  x_i = \text{round}(\text{rlnormTrunc}(n, \mu, \sigma, \text{lowerBound}, \text{upperBound}))
+  \]
+where $\mu$ and $\sigma$ are estimated from the data using maximum likelihood.
+
+\paragraph{Normal distribution ("norm").} Draws from a truncated normal distribution centered at the heap value:
+  \[
+  x_i = \text{round}(\text{rnormTrunc}(n, s, \sigma, \text{lowerBound}, \text{upperBound}))
+  \]
+The standard deviation $\sigma$ can be specified by the user or estimated from the data.
+
+\paragraph{Uniform distribution ("unif").} Draws uniformly from the interval:
+  \[
+  x_i = \text{sample}(\text{lowerBound}:\text{upperBound}, n, \text{replace} = \text{TRUE})
+  \]
+
+\paragraph{Kernel density estimation ("kernel").} Uses the empirical distribution of the data by fitting a kernel density estimate and sampling from it within the truncation bounds. This non-parametric approach is particularly useful when the data does not follow a standard distributional form.
+
+Here, \(\text{rlnormTrunc}\) and \(\text{rnormTrunc}\) are functions that generate random samples from truncated log-normal and normal distributions respectively, within the specified bounds.
+
+\subsection{Implementation Features}
+
+The proposed methods are implemented in the R package \texttt{heaping}, which provides several practical features for applied use:
+
+\paragraph{Reproducibility.} The \texttt{seed} parameter allows users to set a random seed, ensuring that results are reproducible across runs. This is essential for scientific research and for integrating the correction into reproducible analysis pipelines.
+
+\paragraph{Missing value handling.} The \texttt{na.action} parameter controls how missing values are treated. With \texttt{na.action = "omit"} (the default), NA values are preserved in their original positions---the correction is applied only to non-missing observations, and NAs are restored afterward. With \texttt{na.action = "fail"}, the function raises an error if any missing values are present, ensuring data completeness before correction.
+
+\paragraph{Diagnostic output.} When \texttt{verbose = TRUE}, the function returns a list containing not only the corrected vector but also diagnostic information: the number of observations changed, changes broken down by heap position, the computed ratios, fitted distribution parameters, and the seed used. This facilitates quality assessment and debugging.
+
+\paragraph{Protected observations.} The \texttt{fixed} parameter accepts a vector of indices that should not be modified during correction. This is useful when certain observations are known to be accurate (e.g., verified ages from administrative records) and should be excluded from the redistribution process.
+
+\paragraph{Custom heap positions.} In addition to the preset "5year" and "10year" options, users can specify a numeric vector of custom heap positions. This allows correction of heaping at irregular intervals or at specific values relevant to the application domain.
+
+
+
+\subsection{Drawing from a Truncated Log-Normal Distribution}
+
+A random variable \( X \) is said to follow a log-normal distribution with parameters \(\mu\) and \(\sigma\) if \( Y = \log(X) \) is normally distributed with mean \(\mu\) and standard deviation \(\sigma\). The PDF of a log-normal distribution is:
+
+\[
+f(x; \mu, \sigma) = \frac{1}{x \sigma \sqrt{2 \pi}} \exp\left( -\frac{(\ln x - \mu)^2}{2\sigma^2} \right), \quad x > 0
+\]
+
+For a truncated log-normal distribution within the range \([a, b]\), the PDF is given by:
+
+\[
+f_{\text{trunc}}(x; \mu, \sigma, a, b) = \frac{f(x; \mu, \sigma)}{F(b; \mu, \sigma) - F(a; \mu, \sigma)}, \quad a < x < b
+\]
+
+where \(F(x; \mu, \sigma)\) is the CDF of the log-normal distribution:
+
+\[
+F(x; \mu, \sigma) = \frac{1}{2} \left[1 + \text{erf}\left(\frac{\ln x - \mu}{\sigma \sqrt{2}}\right)\right]
+\]
+
+\paragraph{Sampling Algorithm}
+
+Given \( n \) samples, the process to draw from a truncated log-normal distribution is:
+
+1. **Input parameters:**
+   \begin{itemize}
+       \item \( n \): number of samples
+       \item \( \mu \): mean of the logarithm of the distribution
+       \item \( \sigma \): standard deviation of the logarithm of the distribution
+       \item \( a \): lower bound of truncation
+       \item \( b \): upper bound of truncation
+   \end{itemize}
+
+2. **Generate \( n \) uniform random variables \( U_i \):**
+   \[
+   U_i \sim \text{Uniform}(0, 1) \quad \text{for} \quad i = 1, \ldots, n
+   \]
+
+3. **Transform \( U_i \) to \( U_i' \) in the range \([F(a; \mu, \sigma), F(b; \mu, \sigma)]\):**
+   \[
+   U_i' = F(a; \mu, \sigma) + U_i \cdot (F(b; \mu, \sigma) - F(a; \mu, \sigma)) \quad \text{for} \quad i = 1, \ldots, n
+   \]
+
+4. **Obtain the samples \( X_i \) using the inverse CDF of the log-normal distribution:**
+   \[
+   X_i = F^{-1}(U_i'; \mu, \sigma) \quad \text{for} \quad i = 1, \ldots, n
+   \]
+
+
+\begin{algorithm}
+\caption{Generate Truncated Log-Normal Samples}\label{alg:truncatedLogNormal}
+\begin{algorithmic}[1]
+\Require $n$ (number of samples), $\mu$ (mean log), $\sigma$ (standard deviation log), $a$ (lower bound), $b$ (upper bound)
+\Ensure $X$ (samples from truncated log-normal distribution)
+\State $X \gets$ empty list
+\For{$i \gets 1$ to $n$}
+    \State $U \gets$ uniform random number in $[0, 1]$
+    \State $U' \gets F(a; \mu, \sigma) + U \cdot (F(b; \mu, \sigma) - F(a; \mu, \sigma))$
+    \State $X_i \gets F^{-1}(U'; \mu, \sigma)$
+    \State Add $X_i$ to $X$
+\EndFor
+\State \Return $X$
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Correction of a single heap}
+
+Age misreporting might be confined to a particular age group rather than following a systematic pattern across all ages ending in 0 or 5. For example, cultural factors might cause heaping specifically at age 18 (legal adulthood), age 21 (drinking age in some countries), or age 65 (retirement age). In such cases, a targeted correction approach is more appropriate than applying a general 5-year or 10-year heaping correction.
+
+The \texttt{correctSingleHeap} function addresses this scenario by correcting heaping at a single specified age. The algorithm operates as follows:
+
+\begin{algorithm}
+\caption{Correct Single Heap}\label{alg:correctSingleHeap}
+\begin{algorithmic}[1]
+\Require $x$ (vector of ages), $heap$ (target age), $before$ (range below), $after$ (range above), $method$ (distribution), $fixed$ (protected indices), $seed$ (for reproducibility)
+\Ensure Corrected age vector
+\State Define neighborhood: $[heap - before, heap + after]$
+\State $neighbors \gets$ ages in $x$ within neighborhood, excluding $heap$
+\State $n_{heap} \gets$ count of observations at $heap$
+\State $n_{expected} \gets$ mean count of neighboring ages
+\State $ratio \gets n_{heap} / n_{expected}$
+\If{$ratio > 1$}
+    \State $n_{correct} \gets \lceil n_{heap} - n_{heap}/ratio \rceil$
+    \State $indices \gets$ random sample of $n_{correct}$ positions at $heap$
+    \State Remove any $fixed$ indices from selection
+    \State Draw replacements from truncated distribution over $[heap - before, heap + after]$
+    \State Replace selected observations with drawn values
+\EndIf
+\State \Return corrected $x$
+\end{algorithmic}
+\end{algorithm}
+
+The key difference from the general heaping correction is that the user specifies both the target heap age and the neighborhood size (parameters $before$ and $after$), allowing precise control over which ages receive redistributed observations. This is particularly useful when domain knowledge indicates heaping at specific ages that do not follow a regular interval pattern.
+
+
+\section{Numerical application}
+
+
+\subsection{Simple illustrations}
+
+\subsection{Application to wage gap}
+
+A practical study that investigates the salary disparity between native and immigrant Hispanic workers in the metropolitan area of Chicago.
+
+The chicago dataset comprises details on demographic traits and labor market results for 712 employed Hispanic individuals in the Chicago metropolitan region. This data set is part of the 2013 Current Population Survey (CPS) Outgoing Rotation Groups (ORG) data collection (Center for Economic and Policy Research 2014). These data have been widely used in labor economics studies (e.g., Holzer and Hlavac 2014) and is included in the R package oaxaca \citep{oaxaca}.
+
+
+The linear regression model takes into account covariates such as workers' age, gender, and education level. Indicator variables like LTHS ("less than high school"), some.college, college, and advanced.degree represent the highest educational attainment of individuals, with high school being the excluded baseline. The variable foreign.born identifies if a worker is born outside the U.S., categorizing workers into Group A (native) and Group B (foreign-born). To ensure that the choice of the omitted baseline does not impact the decomposition results, the formula argument includes adjustments for the education level categorical variables. Bootstrapped standard errors are determined using 1,000 replications.
+
+% latex table generated in R 4.4.1 by xtable 1.8-4 package
+% Fri Aug  2 13:02:56 2024
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlrrrr}
+  \hline
+ & data & coef unexplained A & coef unexplained B & diffA (\%) & diffB (\%) \\
+  \hline
+1 & original & 0.181 & 0.104 & 0.00 & 0.00 \\
+  2 & heaping & 0.176 & 0.102 & 2.51 & 1.60 \\
+  3 & after & 0.162 & 0.098 & 10.29 & 5.45 \\
+  4 & after with model & 0.177 & 0.102 & 1.93 & 1.90 \\
+   \hline
+\end{tabular}
+\caption{Twofold Blinder-Oaxaca decomposition results for the wage gap analysis. The columns show the unexplained coefficients for Group A (native workers) and Group B (foreign-born workers), representing the portion of the wage gap attributable to discrimination or unobserved factors. The columns diffA and diffB show the percentage deviation from the original (unheaped) coefficients.}
+\label{tab:twofold}
+\end{table}
+
+Table~\ref{tab:twofold} presents the results of the Blinder-Oaxaca decomposition under four data conditions. The ``original'' row shows the baseline coefficients computed from the unheaped data, serving as the ground truth. When heaping is artificially introduced (``heaping'' row), the unexplained coefficients decrease slightly, with deviations of 2.51\% and 1.60\% for Groups A and B, respectively.
+
+The ``after'' row shows results after applying the simple individual-level correction without incorporating covariate information. Surprisingly, this correction increases the deviation from the original coefficients (10.29\% and 5.45\%), indicating that naive redistribution of heaped values can distort the relationships between age and other variables in the regression model.
+
+In contrast, the ``after with model'' row demonstrates the benefit of model-based correction. By incorporating covariate relationships (income, education, marital status) when redistributing heaped ages, the corrected data achieves the smallest deviation from the original coefficients (1.93\% and 1.90\%). This result is even closer to the original than the heaped data, suggesting that the model-based correction not only removes heaping but also better preserves the underlying data structure relevant for regression analysis.
+
+These findings highlight an important practical consideration: when corrected data will be used for regression modeling or causal inference, simple redistribution based solely on age frequencies may be insufficient. Incorporating auxiliary information through model-based correction yields more reliable downstream analyses.
+
+\subsection{Application to population demographics}
+
+To evaluate the effectiveness of the proposed individual-level heaping correction, we conducted a simulation study comparing different correction approaches across varying levels of heaping intensity.
+
+\subsubsection{Simulation Design}
+
+We generated synthetic age data following a log-normal distribution with parameters $\mu = 2.47$ and $\sigma = 1.65$, which produces a realistic age distribution similar to those observed in population surveys. Each simulation run created 10,000 observations, truncated at age 93 to reflect typical survey data constraints.
+
+Heaping was artificially introduced by duplicating observations at ages divisible by 5, with the heaping ratio (proportion of additional heaped observations) varying from 0 to 0.35 in increments of 0.025. This range covers scenarios from no heaping to severe heaping, corresponding to Whipple index values from approximately 100 (no heaping) to over 150 (strong heaping).
+
+Four approaches were compared:
+\begin{enumerate}
+    \item \textbf{Heaped}: The uncorrected data with artificially introduced heaping
+    \item \textbf{Corrected}: Individual-level correction using truncated log-normal distribution
+    \item \textbf{Corrected (model)}: Individual-level correction incorporating covariate information through a regression model
+    \item \textbf{Smoothed (GAM)}: Traditional aggregated smoothing using generalized additive models
+\end{enumerate}
+
+Each scenario was replicated 100 times to ensure stable estimates, and results were averaged across replications.
+
+\subsubsection{Evaluation Metrics}
+
+Three complementary metrics were used to assess correction quality:
+
+\paragraph{Whipple Index.} The Whipple index \citep{spoorenberg2007} measures the degree of heaping by comparing observed frequencies at ages ending in 0 and 5 to expected frequencies. A value of 100 indicates no heaping, while values above 105 indicate increasing levels of age heaping \citep{un55}.
+
+\paragraph{Jensen-Shannon Divergence.} The Jensen-Shannon divergence (JSD) quantifies the similarity between the corrected age distribution and the true (unheaped) distribution. Lower values indicate better recovery of the original distribution. Unlike the Kullback-Leibler divergence, the JSD is symmetric and always finite.
+
+\paragraph{Mean Absolute Percentage Error.} The MAPE measures the average percentage deviation of age-specific counts from the true distribution, providing an interpretable measure of correction accuracy.
+
+\subsubsection{Results}
+
+Figure~\ref{fig:whipplesim} shows the Whipple index across different heaping ratios. The heaped data exhibits a steep increase in the Whipple index as the heaping ratio increases, reaching values above 140 at a heaping ratio of 0.35. Both individual-level correction methods successfully reduce the Whipple index to values close to the non-heaped baseline (approximately 100--105), demonstrating effective elimination of heaping. The model-based correction performs slightly better than the simple correction, particularly at higher heaping ratios. The GAM smoothing approach also reduces the Whipple index but tends to over-smooth, sometimes producing values below 100.
+
+Figure~\ref{fig:jsdsim} presents the Jensen-Shannon divergence results. The heaped data shows increasing divergence from the true distribution as heaping intensifies. The model-based correction consistently achieves the lowest JSD values, indicating the best recovery of the original distribution. The simple correction method performs well but shows slightly higher divergence at extreme heaping ratios. The GAM approach shows intermediate performance, with divergence values between the corrected and heaped data.
+
+Figure~\ref{fig:mapesim} displays the MAPE results across heaping ratios. Similar patterns emerge: the model-based correction achieves the lowest error rates, followed by the simple correction method. At a heaping ratio of 0.27 (corresponding to moderate heaping), the model-based correction reduces the MAPE by approximately 60\% compared to the uncorrected heaped data.
+
+\subsubsection{Discussion}
+
+The simulation results demonstrate several key findings. First, the proposed individual-level correction methods effectively eliminate heaping as measured by the Whipple index, restoring values close to the ideal value of 100. Second, incorporating covariate information through model-based correction provides additional improvement, particularly at higher heaping intensities. This improvement arises because the model can leverage relationships between age and other variables (such as income, education, and marital status) to make more informed corrections.
+
+Third, while traditional aggregated smoothing (GAM) can reduce heaping indices, it does not preserve individual-level data and may introduce over-smoothing artifacts. The individual-level methods maintain the granularity of the data, making them suitable for subsequent analyses requiring individual observations.
+
+These results support the use of individual-level heaping correction for demographic data, particularly when the corrected data will be used for regression modeling, subgroup analyses, or other applications requiring accurate individual-level information.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\linewidth]{whipplesim.pdf}
+    \caption{Whipple index across different heaping ratios for non-heaped data, heaped data, and three correction methods. The individual-level correction methods restore the Whipple index to values close to the non-heaped baseline.}
+    \label{fig:whipplesim}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\linewidth]{jsdsim.pdf}
+    \caption{Jensen-Shannon divergence from the true age distribution across heaping ratios. Lower values indicate better recovery of the original distribution. The model-based correction achieves the lowest divergence.}
+    \label{fig:jsdsim}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\linewidth]{mapesim.pdf}
+    \caption{Mean Absolute Percentage Error (MAPE) of age-specific counts across heaping ratios. The model-based correction consistently achieves the lowest error rates.}
+    \label{fig:mapesim}
+\end{figure}
+
+\subsection{Illustrative examples}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.5\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{age5heaps1.pdf}
+        \caption{Age distribution with 5-year heaping before correction.}
+        \label{fig:age5heaps1}
+    \end{subfigure}%
+    \begin{subfigure}[b]{0.5\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{age5heaps2.pdf}
+        \caption{Age distribution after correction of 5-year heaping.}
+        \label{fig:age5heaps2}
+    \end{subfigure}
+    \caption{Comparison of age distributions before and after correction of 5-year heaping using the proposed individual-level method.}
+    \label{fig:combined5}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.5\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{age10heaps1.pdf}
+        \caption{Age distribution with 10-year heaping before correction.}
+        \label{fig:age10heaps1}
+    \end{subfigure}%
+    \begin{subfigure}[b]{0.5\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{age10heaps2.pdf}
+        \caption{Age distribution after correction of 10-year heaping.}
+        \label{fig:age10heaps2}
+    \end{subfigure}
+    \caption{Comparison of age distributions before and after correction of 10-year heaping using the proposed individual-level method.}
+    \label{fig:combined10}
+\end{figure}
+
+
+\section{Conclusion}
+
+This paper introduced a novel approach for correcting heaping at the individual level, addressing a gap in the demographic and statistical literature where traditional methods focus primarily on smoothing aggregated statistics. While established techniques such as the Carrier-Farrag \citep{carrier1959}, Arriaga \citep{arriaga1968}, Karup-King-Newton \citep{karup1903}, and United Nations \citep{un1956} formulas effectively smooth population distributions, they do not preserve individual-level data integrity, which is essential for regression modeling, longitudinal studies, and machine learning applications.
+
+The proposed method identifies heaped values by comparing observed frequencies at heaping points (ages ending in 0 or 5) with the mean frequency of adjacent ages. A calculated proportion of observations at each heaping point is then redistributed using draws from truncated distributions---log-normal, normal, uniform, or kernel density estimates---fitted to the underlying data. This stochastic approach ensures that corrected values remain plausible while eliminating artificial peaks in the distribution.
+
+The application to wage gap analysis using the Blinder-Oaxaca decomposition demonstrated the practical importance of individual-level correction. As shown in Table~\ref{tab:twofold}, the model-based correction approach achieved the smallest deviation from the original (unheaped) coefficients, with differences of only 1.93\% and 1.90\% for Groups A and B, respectively. This compares favorably to the naive correction without modeling, which showed larger deviations of 10.29\% and 5.45\%. These results confirm that preserving the distributional characteristics of the data through model-based correction leads to more accurate downstream analyses.
+
+Several advantages of the individual-level approach were identified: (1) preservation of data granularity for detailed analyses, (2) flexibility to use the same corrected dataset across multiple studies, (3) improved accuracy in regression models and predictive algorithms, (4) compatibility with longitudinal study designs, and (5) better detection of anomalies that might be masked by aggregated smoothing.
+
+The method has some limitations. First, it assumes that heaping is the result of misreporting rather than systematic underreporting; if age/sex-specific underreporting exists, the correction may inappropriately redistribute observations \citep{preston1999}. Second, the quality of the correction depends on the appropriateness of the fitted distribution; for highly skewed or multimodal data, the log-normal or kernel methods are preferred over the normal distribution. Third, the stochastic nature of the correction means that results vary across runs unless a random seed is specified, though this can be advantageous for multiple imputation frameworks.
+
+Future work could extend the method in several directions. Integration with multiple imputation frameworks would allow proper uncertainty quantification across analyses. The approach could be generalized to other types of heaping beyond age data, including income, weight, and time duration. Additionally, Bayesian methods could be incorporated to provide posterior distributions of corrected values rather than point estimates.
+
+The proposed methods are implemented in the R package \texttt{heaping}, which provides the functions \texttt{correctHeaps} for systematic heaping correction and \texttt{correctSingleHeap} for targeted correction at specific values. The package supports multiple distribution methods, reproducible results through seed specification, and diagnostic output for assessing correction quality. The software is available to facilitate adoption of individual-level heaping correction in demographic research, survey analysis, and data science applications
+
+
+\section*{Declarations}
+
+\begin{itemize}
+\item \textbf{Funding}: Not applicable.
+\item \textbf{Conflict of interest}: The author declares no conflict of interest.
+\item \textbf{Data availability}: The datasets used in this study are available in the R package \texttt{heaping} and the \texttt{oaxaca} package.
+\item \textbf{Code availability}: The R package \texttt{heaping} implementing the proposed methods is available on CRAN.
+\end{itemize}
+
+% \begin{appendices}
+% \section{Section title of first appendix}\label{secA1}
+% \end{appendices}
+
+\bibliography{sn-bibliography}% common bib file
+%% if required, the content of .bbl file can be included here once bbl is generated
+%%\input sn-article.bbl
+
+
+\end{document}

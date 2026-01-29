@@ -1,0 +1,400 @@
+%% BioMed_Central_Bib_Style_v1.01
+
+\begin{thebibliography}{25}
+% BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
+\ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
+\ifx \binits  \undefined \def \binits#1{#1}\fi
+\ifx \bauthor  \undefined \def \bauthor#1{#1}\fi
+\ifx \batitle  \undefined \def \batitle#1{#1}\fi
+\ifx \bjtitle  \undefined \def \bjtitle#1{#1}\fi
+\ifx \bvolume  \undefined \def \bvolume#1{\textbf{#1}}\fi
+\ifx \byear  \undefined \def \byear#1{#1}\fi
+\ifx \bissue  \undefined \def \bissue#1{#1}\fi
+\ifx \bfpage  \undefined \def \bfpage#1{#1}\fi
+\ifx \blpage  \undefined \def \blpage #1{#1}\fi
+\ifx \burl  \undefined \def \burl#1{\textsf{#1}}\fi
+\ifx \doiurl  \undefined \def \doiurl#1{\url{https://doi.org/#1}}\fi
+\ifx \betal  \undefined \def \betal{\textit{et al.}}\fi
+\ifx \binstitute  \undefined \def \binstitute#1{#1}\fi
+\ifx \binstitutionaled  \undefined \def \binstitutionaled#1{#1}\fi
+\ifx \bctitle  \undefined \def \bctitle#1{#1}\fi
+\ifx \beditor  \undefined \def \beditor#1{#1}\fi
+\ifx \bpublisher  \undefined \def \bpublisher#1{#1}\fi
+\ifx \bbtitle  \undefined \def \bbtitle#1{#1}\fi
+\ifx \bedition  \undefined \def \bedition#1{#1}\fi
+\ifx \bseriesno  \undefined \def \bseriesno#1{#1}\fi
+\ifx \blocation  \undefined \def \blocation#1{#1}\fi
+\ifx \bsertitle  \undefined \def \bsertitle#1{#1}\fi
+\ifx \bsnm \undefined \def \bsnm#1{#1}\fi
+\ifx \bsuffix \undefined \def \bsuffix#1{#1}\fi
+\ifx \bparticle \undefined \def \bparticle#1{#1}\fi
+\ifx \barticle \undefined \def \barticle#1{#1}\fi
+\bibcommenthead
+\ifx \bconfdate \undefined \def \bconfdate #1{#1}\fi
+\ifx \botherref \undefined \def \botherref #1{#1}\fi
+\ifx \url \undefined \def \url#1{\textsf{#1}}\fi
+\ifx \bchapter \undefined \def \bchapter#1{#1}\fi
+\ifx \bbook \undefined \def \bbook#1{#1}\fi
+\ifx \bcomment \undefined \def \bcomment#1{#1}\fi
+\ifx \oauthor \undefined \def \oauthor#1{#1}\fi
+\ifx \citeauthoryear \undefined \def \citeauthoryear#1{#1}\fi
+\ifx \endbibitem  \undefined \def \endbibitem {}\fi
+\ifx \bconflocation  \undefined \def \bconflocation#1{#1}\fi
+\ifx \arxivurl  \undefined \def \arxivurl#1{\textsf{#1}}\fi
+\csname PreBibitemsHook\endcsname
+
+%%% 1
+\bibitem[\protect\citeauthoryear{Ewbank}{1981}]{ewbank1981}
+\begin{bbook}
+\bauthor{\bsnm{Ewbank}, \binits{D.C.}}:
+\bbtitle{Age Misreporting and Age-Selective Underenumeration: Sources,
+  Patterns, and Consequences for Demographic Analysis}.
+\bsertitle{Committee on Population and Demography Report},
+vol. \bseriesno{4}.
+\bpublisher{National Academy Press},
+\blocation{Washington, DC}
+(\byear{1981})
+\end{bbook}
+\endbibitem
+
+%%% 2
+\bibitem[\protect\citeauthoryear{{Economic~and~social~commission~for~Western~Asia~(ESCWA)}}{2013}]{un13}
+\begin{botherref}
+\oauthor{\bsnm{{Economic~and~social~commission~for~Western~Asia~(ESCWA)}}}:
+A study of age reporting in selected arab censuses of population.
+Technical report,
+United Nations, New York
+(2013)
+\end{botherref}
+\endbibitem
+
+%%% 3
+\bibitem[\protect\citeauthoryear{Seiver}{1978}]{seiver78}
+\begin{barticle}
+\bauthor{\bsnm{Seiver}, \binits{D.}}:
+\batitle{Note on the measurement of income inequality with interval data
+  (revised)}.
+\bjtitle{International Association for Research in Income and Wealth}
+\bvolume{25},
+\bfpage{229}--\blpage{233}
+(\byear{1978})
+\end{barticle}
+\endbibitem
+
+%%% 4
+\bibitem[\protect\citeauthoryear{Stavrakantonaki and
+  Holbrook}{2017}]{stavrakantonaki17}
+\begin{bchapter}
+\bauthor{\bsnm{Stavrakantonaki}, \binits{M.}},
+\bauthor{\bsnm{Holbrook}, \binits{A.}}:
+\bctitle{Response Heaping in Weight and Height Self-Reports: Consequences for
+  Predictive Validity}.
+In: \bbtitle{Annual Meeting of the American Association for Public Opinion
+  Research},
+\blocation{New Orleans, LA}
+(\byear{2017})
+\end{bchapter}
+\endbibitem
+
+%%% 5
+\bibitem[\protect\citeauthoryear{Aburto et~al.}{2022}]{aburto2022}
+\begin{botherref}
+\oauthor{\bsnm{Aburto}, \binits{J.M.}},
+\oauthor{\bsnm{Kashnitsky}, \binits{I.}},
+\oauthor{\bsnm{Pascariu}, \binits{M.}},
+\oauthor{\bsnm{Riffe}, \binits{T.}}:
+Age-heaping indices with DemoTools.
+Git{H}ub Repository.
+Accessed: 10.09.2024
+(2022).
+\url{https://github.com/timriffe/DemoTools}
+\end{botherref}
+\endbibitem
+
+%%% 6
+\bibitem[\protect\citeauthoryear{Spoorenberg and
+  Dutreuilh}{2007}]{spoorenberg2007}
+\begin{barticle}
+\bauthor{\bsnm{Spoorenberg}, \binits{T.}},
+\bauthor{\bsnm{Dutreuilh}, \binits{C.}}:
+\batitle{Quality of age reporting: extension and application of the modified
+  {Whipple's} index}.
+\bjtitle{Population}
+\bvolume{62}(\bissue{4}),
+\bfpage{729}--\blpage{741}
+(\byear{2007})
+\doiurl{10.3917/popu.704.0729}
+\end{barticle}
+\endbibitem
+
+%%% 7
+\bibitem[\protect\citeauthoryear{Myers}{1954}]{myers1954}
+\begin{barticle}
+\bauthor{\bsnm{Myers}, \binits{R.J.}}:
+\batitle{Accuracy of age reporting in the 1950 {United States} census}.
+\bjtitle{Journal of the American Statistical Association}
+\bvolume{49}(\bissue{268}),
+\bfpage{826}--\blpage{831}
+(\byear{1954})
+\end{barticle}
+\endbibitem
+
+%%% 8
+\bibitem[\protect\citeauthoryear{Bachi}{1951}]{bachi1951}
+\begin{barticle}
+\bauthor{\bsnm{Bachi}, \binits{R.}}:
+\batitle{The tendency to round off age returns: measurement and correction}.
+\bjtitle{Bulletin of the International Statistical Institute}
+\bvolume{33}(\bissue{4}),
+\bfpage{195}--\blpage{222}
+(\byear{1951})
+\end{barticle}
+\endbibitem
+
+%%% 9
+\bibitem[\protect\citeauthoryear{Coale and Li}{1991}]{coale1991}
+\begin{barticle}
+\bauthor{\bsnm{Coale}, \binits{A.J.}},
+\bauthor{\bsnm{Li}, \binits{S.}}:
+\batitle{The effect of age misreporting in {China} on the calculation of
+  mortality rates at very high ages}.
+\bjtitle{Demography}
+\bvolume{28}(\bissue{2}),
+\bfpage{293}--\blpage{301}
+(\byear{1991})
+\doiurl{10.2307/2061280}
+\end{barticle}
+\endbibitem
+
+%%% 10
+\bibitem[\protect\citeauthoryear{Noumbissi}{1992}]{noumbissi1992}
+\begin{barticle}
+\bauthor{\bsnm{Noumbissi}, \binits{A.}}:
+\batitle{L'indice de {Whipple} modifi{\'e}: une application aux donn{\'e}es du
+  {Cameroun}, de la {Su{\`e}de} et de la {Belgique}}.
+\bjtitle{Population}
+\bvolume{47}(\bissue{4}),
+\bfpage{1038}--\blpage{1041}
+(\byear{1992}).
+\bcomment{Modified Whipple's index: an application to data from Cameroon,
+  Sweden and Belgium}
+\end{barticle}
+\endbibitem
+
+%%% 11
+\bibitem[\protect\citeauthoryear{Jdanov et~al.}{2008}]{jdanov2008}
+\begin{barticle}
+\bauthor{\bsnm{Jdanov}, \binits{D.A.}},
+\bauthor{\bsnm{Scholz}, \binits{R.D.}},
+\bauthor{\bsnm{Shkolnikov}, \binits{V.M.}}:
+\batitle{Official population statistics and the {Human Mortality Database}
+  estimates of populations aged 80+ in {Germany} and nine other {European}
+  countries}.
+\bjtitle{Demographic Research}
+\bvolume{19},
+\bfpage{1169}--\blpage{1196}
+(\byear{2008})
+\doiurl{10.4054/DemRes.2008.19.31}
+\end{barticle}
+\endbibitem
+
+%%% 12
+\bibitem[\protect\citeauthoryear{Kannisto}{1999}]{kannisto1999}
+\begin{barticle}
+\bauthor{\bsnm{Kannisto}, \binits{V.}}:
+\batitle{Assessing the information on age at death of old persons in national
+  vital statistics}.
+\bjtitle{Validation of Exceptional Longevity, Odense Monographs on Population
+  Aging}
+\bvolume{6},
+\bfpage{235}--\blpage{249}
+(\byear{1999})
+\end{barticle}
+\endbibitem
+
+%%% 13
+\bibitem[\protect\citeauthoryear{Sprague}{1880}]{sprague1880}
+\begin{barticle}
+\bauthor{\bsnm{Sprague}, \binits{T.B.}}:
+\batitle{Explanation of a new formula for interpolation}.
+\bjtitle{Journal of the Institute of Actuaries}
+\bvolume{22},
+\bfpage{270}--\blpage{285}
+(\byear{1880})
+\end{barticle}
+\endbibitem
+
+%%% 14
+\bibitem[\protect\citeauthoryear{Rasul et~al.}{2023}]{rasul23}
+\begin{botherref}
+\oauthor{\bsnm{Rasul}, \binits{A.}},
+\oauthor{\bsnm{Nasir}, \binits{J.A.}},
+\oauthor{\bsnm{Jasilionis}, \binits{D.}},
+\oauthor{\bsnm{Jdanov}, \binits{D.A.}}:
+Quality of reported ages: a robust re-modification in total modified whipple's
+  index.
+Technical report,
+Max Planck Institute for Demographic Research
+(2023).
+\doiurl{10.4054/MPIDR-WP-2023-043} .
+MPIDR Working Paper WP-2023-043
+\end{botherref}
+\endbibitem
+
+%%% 15
+\bibitem[\protect\citeauthoryear{{United~Nations}}{1955}]{un55}
+\begin{botherref}
+\oauthor{\bsnm{{United~Nations}}}:
+Methods of appraisal of quality of basic data for population estimates.
+Technical report,
+United Nations
+(1955).
+Manual II, Series A, Population Studies No 23
+\end{botherref}
+\endbibitem
+
+%%% 16
+\bibitem[\protect\citeauthoryear{Shryock and Siegel}{1976}]{shryock76}
+\begin{bchapter}
+\bauthor{\bsnm{Shryock}, \binits{H.S.}},
+\bauthor{\bsnm{Siegel}, \binits{J.S.}}:
+\bctitle{Chapter 8 -- age composition}.
+In: \beditor{\bsnm{Shryock}, \binits{H.S.}},
+\beditor{\bsnm{Siegel}, \binits{J.S.}} (eds.)
+\bbtitle{The Methods and Materials of Demography}.
+\bsertitle{Studies in Population},
+pp. \bfpage{113}--\blpage{144}.
+\bpublisher{Academic Press},
+\blocation{San Diego}
+(\byear{1976}).
+\doiurl{10.1016/B978-0-12-641150-8.50012-3}
+\end{bchapter}
+\endbibitem
+
+%%% 17
+\bibitem[\protect\citeauthoryear{Hobbs}{2004}]{hobbs2004}
+\begin{bchapter}
+\bauthor{\bsnm{Hobbs}, \binits{F.}}:
+\bctitle{Age and sex composition}.
+In: \beditor{\bsnm{Siegel}, \binits{J.S.}},
+\beditor{\bsnm{Swanson}, \binits{D.A.}} (eds.)
+\bbtitle{The Methods and Materials of Demography},
+\bedition{2nd} edn.,
+pp. \bfpage{125}--\blpage{173}.
+\bpublisher{Elsevier Academic Press},
+\blocation{San Diego}
+(\byear{2004})
+\end{bchapter}
+\endbibitem
+
+%%% 18
+\bibitem[\protect\citeauthoryear{Gross and Rendtel}{2016}]{kernelheaping}
+\begin{barticle}
+\bauthor{\bsnm{Gross}, \binits{M.}},
+\bauthor{\bsnm{Rendtel}, \binits{U.}}:
+\batitle{Kernel density estimation for heaped data}.
+\bjtitle{Journal of Survey Statistics and Methodology}
+\bvolume{4}(\bissue{3}),
+\bfpage{339}--\blpage{361}
+(\byear{2016})
+\doiurl{10.1093/jssam/smw011}
+\end{barticle}
+\endbibitem
+
+%%% 19
+\bibitem[\protect\citeauthoryear{Templ et~al.}{2017}]{simpop}
+\begin{barticle}
+\bauthor{\bsnm{Templ}, \binits{M.}},
+\bauthor{\bsnm{Meindl}, \binits{B.}},
+\bauthor{\bsnm{Kowarik}, \binits{A.}},
+\bauthor{\bsnm{Dupriez}, \binits{O.}}:
+\batitle{{simPop}: An {R} package for stochastic microsimulation of population
+  data}.
+\bjtitle{Journal of Statistical Software}
+\bvolume{79}(\bissue{10}),
+\bfpage{1}--\blpage{38}
+(\byear{2017})
+\doiurl{10.18637/jss.v079.i10}
+\end{barticle}
+\endbibitem
+
+%%% 20
+\bibitem[\protect\citeauthoryear{Preston et~al.}{1999}]{preston1999}
+\begin{barticle}
+\bauthor{\bsnm{Preston}, \binits{S.H.}},
+\bauthor{\bsnm{Elo}, \binits{I.T.}},
+\bauthor{\bsnm{Stewart}, \binits{Q.}}:
+\batitle{Effects of age misreporting on mortality estimates at older ages}.
+\bjtitle{Population Studies}
+\bvolume{53}(\bissue{2}),
+\bfpage{165}--\blpage{177}
+(\byear{1999})
+\doiurl{10.1080/00324720308075}
+\end{barticle}
+\endbibitem
+
+%%% 21
+\bibitem[\protect\citeauthoryear{Carrier and Farrag}{1959}]{carrier1959}
+\begin{barticle}
+\bauthor{\bsnm{Carrier}, \binits{N.H.}},
+\bauthor{\bsnm{Farrag}, \binits{A.M.}}:
+\batitle{The reduction of errors in census populations for statistically
+  underdeveloped countries}.
+\bjtitle{Population Studies}
+\bvolume{12}(\bissue{3}),
+\bfpage{240}--\blpage{285}
+(\byear{1959})
+\doiurl{10.1080/00324728.1959.10405019}
+\end{barticle}
+\endbibitem
+
+%%% 22
+\bibitem[\protect\citeauthoryear{Arriaga}{1968}]{arriaga1968}
+\begin{bbook}
+\bauthor{\bsnm{Arriaga}, \binits{E.E.}}:
+\bbtitle{New Life Tables for Latin American Populations in the Nineteenth and
+  Twentieth Centuries}.
+\bsertitle{Population Monograph Series},
+vol. \bseriesno{3}.
+\bpublisher{University of California Press},
+\blocation{Berkeley}
+(\byear{1968})
+\end{bbook}
+\endbibitem
+
+%%% 23
+\bibitem[\protect\citeauthoryear{Karup}{1903}]{karup1903}
+\begin{botherref}
+\oauthor{\bsnm{Karup}, \binits{J.}}:
+{{\"{U}ber eine neue mechanische Ausgleichungsmethode}}.
+Transactions of the Second International Actuarial Congress,
+31--77
+(1903)
+\end{botherref}
+\endbibitem
+
+%%% 24
+\bibitem[\protect\citeauthoryear{{United Nations}}{1956}]{un1956}
+\begin{botherref}
+\oauthor{\bsnm{{United Nations}}}:
+Manual {III}: Methods for population projections by sex and age.
+Technical Report ST/SOA/Series A/25,
+United Nations, Department of Economic and Social Affairs,
+New York
+(1956)
+\end{botherref}
+\endbibitem
+
+%%% 25
+\bibitem[\protect\citeauthoryear{Klotzke and Neumann}{2020}]{oaxaca}
+\begin{botherref}
+\oauthor{\bsnm{Klotzke}, \binits{P.}},
+\oauthor{\bsnm{Neumann}, \binits{M.}}:
+Introduction to the Oaxaca Package.
+(2020).
+R package vignette.
+\url{https://CRAN.R-project.org/package=oaxaca}
+\end{botherref}
+\endbibitem
+
+\end{thebibliography}

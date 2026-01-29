@@ -1,0 +1,52 @@
+#' Sample Data for Heaping Correction Examples
+#'
+#' A stratified random sample of demographic and income data from a synthetic
+#' population generated using the \pkg{simPop} package based on EU-SILC data.
+#' This dataset can be used to demonstrate and test heaping correction methods.
+#'
+#' @format A data frame with 25 variables:
+#' \describe{
+#'   \item{db030}{Household ID}
+#'   \item{hsize}{Household size}
+#'   \item{age}{Age in years}
+#'   \item{rb090}{Gender}
+#'   \item{db040}{Region (Bundesland)}
+#'   \item{pid}{Person ID}
+#'   \item{weight}{Original sampling weight}
+#'   \item{pl031}{Economic status}
+#'   \item{pb220a}{Citizenship status}
+#'   \item{pb190}{Marital status}
+#'   \item{pe040}{Education level}
+#'   \item{pl111}{Employment status}
+#'   \item{pgrossIncomeCat}{Personal gross income category}
+#'   \item{pgrossIncome}{Personal gross income}
+#'   \item{py010g}{Employee cash or near cash income}
+#'   \item{py021g}{Company car income}
+#'   \item{py050g}{Self-employment income}
+#'   \item{py080g}{Private pension income}
+#'   \item{py090g}{Unemployment benefits}
+#'   \item{py100g}{Old-age benefits}
+#'   \item{py110g}{Survivor benefits}
+#'   \item{py120g}{Sickness benefits}
+#'   \item{py130g}{Disability benefits}
+#'   \item{py140g}{Education-related allowances}
+#'   \item{.weight}{Sampling weight from stratified sampling}
+#' }
+#'
+#' @source Generated using \pkg{simPop} from EU-SILC 2013 public use file.
+#'   The full synthetic population can be regenerated using the script
+#'   \code{inst/scripts/create_pop.R}.
+#'
+#' @seealso \code{\link[simPop]{eusilc13puf}} for the original data source.
+#'
+#' @examples
+#' data(samp)
+#' head(samp)
+#'
+#' # Check age distribution
+#' hist(samp$age, breaks = 50, main = "Age Distribution")
+#'
+#' # Introduce artificial heaping and correct it
+#' age_heaped <- round(samp$age / 5) * 5
+#' age_corrected <- correctHeaps(age_heaped, heaps = "5year")
+"samp"
