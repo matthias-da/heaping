@@ -91,6 +91,6 @@ Other heaping correction:
 \code{\link{correctHeaps}()}
 }
 \author{
-Matthias Templ, Bernhard Meindl, Alexander Kowarik
+Matthias Templ, Bernhard Meindl
 }
 \concept{heaping correction}

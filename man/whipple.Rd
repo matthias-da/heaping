@@ -102,6 +102,6 @@ Other heaping indices:
 \code{\link{spoorenberg}()}
 }
 \author{
-Matthias Templ, Alexander Kowarik
+Matthias Templ
 }
 \concept{heaping indices}

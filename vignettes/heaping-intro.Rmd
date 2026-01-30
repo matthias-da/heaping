@@ -1,0 +1,528 @@
+---
+title: "Introduction to the heaping Package"
+author: "Matthias Templ"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to the heaping Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+## Overview
+
+The **heaping** package provides tools for detecting and correcting heaping (digit preference) in survey data at the individual record level. Heaping occurs when respondents disproportionately report values at round numbers---for example, ages ending in 0 or 5, incomes rounded to the nearest thousand, or weights rounded to the nearest 5 pounds.
+
+The package provides:
+
+1. **Heaping indices** for detecting and measuring heaping severity
+2. **Correction methods** for removing heaping while preserving individual-level data
+3. **Model-based correction** that preserves relationships with covariates
+
+```{r load-package}
+library(heaping)
+```
+
+## The Problem: What is Heaping?
+
+Heaping is a common data quality issue where certain values appear more frequently than expected due to rounding or digit preference. This is especially common with self-reported data.
+
+Let's create some example data to illustrate, using the same distribution parameters as in Templ (2024):
+
+```{r create-example-data}
+# Generate realistic age data using a log-normal distribution
+# These parameters produce a realistic age distribution
+set.seed(123)
+age_true <- rlnorm(10000, meanlog = 2.466869, sdlog = 1.652772)
+age_true <- round(age_true[age_true < 93])
+
+# Create heaped version where 27% of respondents round their age to multiples of 5
+# This heap_ratio is typical for survey data with moderate heaping
+heap_ratio <- 0.27
+n <- length(age_true)
+indices_to_heap <- sample(n, round(heap_ratio * n))
+age_heaped <- age_true
+age_heaped[indices_to_heap] <- round(age_heaped[indices_to_heap] / 5) * 5
+```
+
+Let's visualize the difference:
+
+```{r visualize-heaping, fig.cap="Comparison of true ages vs heaped ages"}
+par(mfrow = c(1, 2))
+
+# Define breaks to cover the full range
+age_breaks <- seq(0, max(age_true, age_heaped) + 1, by = 1)
+
+# True ages
+hist(age_true, breaks = age_breaks, col = "steelblue",
+     main = "True Ages (No Heaping)", xlab = "Age",
+     border = "white")
+
+# Heaped ages
+hist(age_heaped, breaks = age_breaks, col = "coral",
+     main = "Heaped Ages", xlab = "Age",
+     border = "white")
+```
+
+Notice the spikes at ages ending in 0 and 5 in the heaped data.
+
+## Detecting Heaping: Heaping Indices
+
+Before correcting heaping, we need to detect and quantify it. The package provides several established indices.
+
+### Whipple's Index
+
+The most commonly used index. It compares the frequency of ages ending in 0 or 5 to the expected frequency.
+
+```{r whipple-index}
+# Standard Whipple index (100 = no heaping, 500 = maximum heaping)
+whipple(age_true, method = "standard")
+whipple(age_heaped, method = "standard")
+
+# Modified Whipple index (0 = no heaping, 1 = maximum heaping)
+whipple(age_true, method = "modified")
+whipple(age_heaped, method = "modified")
+```
+
+### Myers' Index
+
+Myers' blended index measures preferences for each terminal digit (0-9):
+
+```{r myers-index}
+# Myers' index (0 = no heaping, 90 = maximum)
+myers(age_true)
+myers(age_heaped)
+```
+
+### Bachi's Index
+
+Similar to Myers' but uses a different blending technique:
+
+```{r bachi-index}
+# Bachi's index (0 = no heaping, 90 = maximum)
+bachi(age_true)
+bachi(age_heaped)
+```
+
+### Noumbissi's Index
+
+Evaluates heaping for a specific terminal digit:
+
+```{r noumbissi-index}
+# Noumbissi's index for digit 0 (1.0 = no heaping)
+noumbissi(age_true, digit = 0)
+noumbissi(age_heaped, digit = 0)
+
+# Noumbissi's index for digit 5
+noumbissi(age_true, digit = 5)
+noumbissi(age_heaped, digit = 5)
+```
+
+### Convenience Function: All Indices at Once
+
+```{r all-indices}
+# Calculate all indices
+indices_true <- heaping_indices(age_true)
+indices_heaped <- heaping_indices(age_heaped)
+
+# Compare
+data.frame(
+  Index = names(indices_true),
+  True = round(unlist(indices_true), 3),
+  Heaped = round(unlist(indices_heaped), 3)
+)
+```
+
+### Using Sampling Weights
+
+All indices support sampling weights for survey data:
+
+```{r weighted-indices}
+# Create example weights
+weights <- runif(length(age_heaped), 0.5, 2)
+
+# Weighted Whipple index
+whipple(age_heaped, weight = weights)
+```
+
+## Correcting Heaping
+
+The key innovation of this package is correcting heaping at the **individual level**. Traditional methods only smooth aggregated frequency distributions, which destroys individual records needed for regression analysis.
+
+### Basic Correction
+
+The `correctHeaps()` function corrects heaping by replacing a proportion of heaped values with draws from truncated distributions:
+
+```{r basic-correction}
+# Correct heaping using log-normal distribution
+age_corrected <- correctHeaps(age_heaped,
+                              heaps = "5year",  # heaps at 0, 5, 10, 15, ...
+                              method = "lnorm",
+                              seed = 42)        # for reproducibility
+
+# Compare Whipple indices
+c(Original = whipple(age_true),
+  Heaped = whipple(age_heaped),
+  Corrected = whipple(age_corrected))
+```
+
+Let's visualize the correction:
+
+```{r visualize-correction, fig.cap="Before and after heaping correction"}
+par(mfrow = c(1, 2))
+
+hist(age_heaped, breaks = age_breaks, col = "coral",
+     main = "Before Correction", xlab = "Age", border = "white")
+
+hist(age_corrected, breaks = age_breaks, col = "forestgreen",
+     main = "After Correction", xlab = "Age", border = "white")
+
+par(mfrow = c(1, 1))
+```
+
+### Correction Methods
+
+Four distribution methods are available:
+
+```{r correction-methods}
+# Log-normal (default) - good for right-skewed data like age
+age_lnorm <- correctHeaps(age_heaped, method = "lnorm", seed = 42)
+
+# Normal - good for symmetric data
+age_norm <- correctHeaps(age_heaped, method = "norm", seed = 42)
+
+# Uniform - simplest approach, baseline comparison
+age_unif <- correctHeaps(age_heaped, method = "unif", seed = 42)
+
+# Kernel - nonparametric, adapts to local data shape
+age_kernel <- correctHeaps(age_heaped, method = "kernel", seed = 42)
+
+# Compare results
+data.frame(
+  Method = c("Original", "Heaped", "Log-normal", "Normal", "Uniform", "Kernel"),
+  Whipple = c(whipple(age_true), whipple(age_heaped),
+              whipple(age_lnorm), whipple(age_norm),
+              whipple(age_unif), whipple(age_kernel))
+)
+```
+
+### Verbose Output and Diagnostics
+
+Use `verbose = TRUE` to get detailed information about the correction:
+
+```{r verbose-output}
+result <- correctHeaps(age_heaped, heaps = "5year",
+                       method = "lnorm", seed = 42, verbose = TRUE)
+
+# Number of values changed
+result$n_changed
+
+# Changes by heap age
+head(result$changes_by_heap, 10)
+
+# Heaping ratios (ratio > 1 indicates heaping)
+head(result$ratios, 10)
+```
+
+### 10-Year Heaping
+
+For data with heaping only at ages ending in 0:
+
+```{r 10year-heaping}
+# Create data with 10-year heaping
+age_heap10 <- age_true
+heapers10 <- sample(c(TRUE, FALSE), length(age_true),
+                    replace = TRUE, prob = c(0.3, 0.7))
+age_heap10[heapers10] <- round(age_heap10[heapers10] / 10) * 10
+
+# Correct 10-year heaping
+age_corrected10 <- correctHeaps(age_heap10, heaps = "10year",
+                                method = "lnorm", seed = 42)
+
+c(Heaped = whipple(age_heap10),
+  Corrected = whipple(age_corrected10))
+```
+
+### Custom Heap Positions
+
+For non-standard heaping patterns, specify exact positions:
+
+```{r custom-heaps}
+# Heaping at specific ages (e.g., 18, 21, 30, 40, 50, 65)
+custom_positions <- c(18, 21, 30, 40, 50, 65)
+age_custom <- correctHeaps(age_heaped,
+                           heaps = custom_positions,
+                           method = "lnorm", seed = 42)
+```
+
+### Single Heap Correction
+
+To correct heaping at just one specific age:
+
+```{r single-heap}
+# Add artificial heap at age 40
+age_with_40heap <- c(age_true, rep(40, 500))
+
+# Correct only the heap at 40
+age_fixed_40 <- correctSingleHeap(age_with_40heap,
+                                   heap = 40,
+                                   before = 3,  # range: 37-43
+                                   after = 3,
+                                   method = "lnorm",
+                                   seed = 42)
+
+# Check the counts at age 40
+c(Before = sum(age_with_40heap == 40),
+  After = sum(age_fixed_40 == 40))
+```
+
+## Model-Based Correction
+
+When age is correlated with other variables (income, education, etc.), simple correction can distort these relationships. Model-based correction uses covariates to make smarter corrections.
+
+```{r model-based-setup, message=FALSE}
+# Create a dataset with correlated variables following the paper's approach
+set.seed(123)
+
+# Generate age from log-normal distribution
+age <- rlnorm(10000, meanlog = 2.466869, sdlog = 1.652772)
+age <- round(age[age < 93 & age >= 18])
+n <- length(age)
+
+# Simulate covariates correlated with age
+age_scaled <- scale(age)
+
+# Income as a function of age with noise
+income <- exp(3 + 0.5 * age_scaled + rnorm(n, 0, 0.5))
+
+# Marital status influenced by age
+marital_status <- ifelse(plogis(-3 + 0.05 * age_scaled + rnorm(n, 0, 0.5)) > 0.5,
+                         "married", "single")
+
+# Education level with age-dependent probabilities
+get_education_prob <- function(a) {
+  if (a < 25) return(c(0.5, 0.35, 0.15))
+  else if (a < 40) return(c(0.3, 0.45, 0.25))
+  else return(c(0.2, 0.4, 0.4))
+}
+education <- sapply(age, function(a) {
+  sample(c("High School", "Bachelor", "Master"), 1, prob = get_education_prob(a))
+})
+
+data_example <- data.frame(
+  age = age,
+  income = income,
+  marital_status = marital_status,
+  education = education
+)
+
+# Introduce heaping with 27% heap ratio (as in the paper)
+heap_ratio <- 0.27
+indices_to_heap <- sample(n, round(heap_ratio * n))
+data_example$age_heaped <- data_example$age
+data_example$age_heaped[indices_to_heap] <- round(data_example$age_heaped[indices_to_heap] / 5) * 5
+```
+
+Apply model-based correction:
+
+```{r model-based-correction, message=FALSE, warning=FALSE}
+# Model-based correction using income, education and marital status
+if (requireNamespace("ranger", quietly = TRUE) &&
+    requireNamespace("VIM", quietly = TRUE)) {
+
+  # Also apply simple correction for comparison
+  data_example$age_simple <- correctHeaps(
+    data_example$age_heaped,
+    heaps = "5year",
+    method = "lnorm",
+    seed = 42
+  )
+
+  # Model-based correction using covariates
+  data_example$age_corrected <- correctHeaps(
+    data_example$age_heaped,
+    heaps = "5year",
+    method = "lnorm",
+    model = age_heaped ~ income + marital_status + education,
+    dataModel = data_example,
+    seed = 42
+  )
+
+  # Compare correlations with log(income)
+  log_income <- log(data_example$income)
+  cor_original <- cor(data_example$age, log_income)
+  cor_heaped <- cor(data_example$age_heaped, log_income)
+  cor_simple <- cor(data_example$age_simple, log_income)
+  cor_corrected <- cor(data_example$age_corrected, log_income)
+
+  cat("Correlation of age with log(income):\n")
+  cat("  Original (true):", round(cor_original, 4), "\n")
+  cat("  Heaped:", round(cor_heaped, 4), "\n")
+  cat("  Simple correction:", round(cor_simple, 4), "\n")
+  cat("  Model-based correction:", round(cor_corrected, 4), "\n")
+}
+```
+
+Let's visualize the model-based correction:
+
+```{r model-based-visualization, fig.cap="Comparison of heaped ages and model-based corrected ages", fig.height=6}
+if (requireNamespace("ranger", quietly = TRUE) &&
+    requireNamespace("VIM", quietly = TRUE)) {
+
+  par(mfrow = c(2, 2))
+
+  # Age distributions
+  age_breaks <- seq(min(data_example$age) - 1, max(data_example$age) + 1, by = 1)
+  hist(data_example$age_heaped, breaks = age_breaks, col = "coral",
+       main = "Heaped Ages", xlab = "Age", border = "white")
+
+  hist(data_example$age_corrected, breaks = age_breaks, col = "forestgreen",
+       main = "Model-Based Corrected Ages", xlab = "Age", border = "white")
+
+  # Age vs log(Income) relationships
+  log_income <- log(data_example$income)
+  plot(data_example$age_heaped, log_income,
+       pch = 16, col = adjustcolor("coral", 0.3), cex = 0.5,
+       main = "Heaped: Age vs log(Income)",
+       xlab = "Age", ylab = "log(Income)")
+  abline(lm(log_income ~ data_example$age_heaped), col = "darkred", lwd = 2)
+
+  plot(data_example$age_corrected, log_income,
+       pch = 16, col = adjustcolor("forestgreen", 0.3), cex = 0.5,
+       main = "Corrected: Age vs log(Income)",
+       xlab = "Age", ylab = "log(Income)")
+  abline(lm(log_income ~ data_example$age_corrected), col = "darkgreen", lwd = 2)
+
+  par(mfrow = c(1, 1))
+}
+```
+
+The model-based correction preserves the relationship between age and income better than simple correction because it uses the covariate information to determine the direction of adjustments.
+
+## Multiple Imputation Framework
+
+Because correction involves random sampling, you can create multiple corrected datasets for proper uncertainty quantification:
+
+```{r multiple-imputation}
+# Create 5 corrected datasets with different seeds
+m <- 5
+corrected_datasets <- lapply(1:m, function(i) {
+  correctHeaps(age_heaped, heaps = "5year",
+               method = "lnorm", seed = i * 100)
+})
+
+# Calculate Whipple index for each
+whipple_values <- sapply(corrected_datasets, whipple)
+
+cat("Whipple indices across imputations:\n")
+cat("  Mean:", round(mean(whipple_values), 2), "\n")
+cat("  SD:", round(sd(whipple_values), 2), "\n")
+cat("  Range:", round(min(whipple_values), 2), "-",
+    round(max(whipple_values), 2), "\n")
+```
+
+## Protecting Specific Observations
+
+If some ages are known to be accurate (e.g., verified from administrative records), exclude them from correction:
+
+```{r fixed-observations}
+# Assume first 100 observations are verified
+verified_indices <- 1:100
+
+age_protected <- correctHeaps(age_heaped,
+                              heaps = "5year",
+                              method = "lnorm",
+                              fixed = verified_indices,  # don't change these
+                              seed = 42)
+
+# Verify protected observations unchanged
+all(age_heaped[verified_indices] == age_protected[verified_indices])
+```
+
+## Working with Aggregated Data: Sprague Multipliers
+
+If you have 5-year age group data and need single-year ages, use the Sprague multipliers:
+
+```{r sprague-example}
+# Example: population counts in 5-year groups
+pop_5year <- c(
+  1971990, 2095820, 2157190, 2094110, 2116580,  # 0-4, 5-9, ..., 20-24
+  2003840, 1785690, 1502990, 1214170, 796934,   # 25-29, ..., 45-49
+  627551, 530305, 488014, 364498, 259029,       # 50-54, ..., 70-74
+  158047, 125941                                 # 75-79, 80+
+)
+
+# Disaggregate to single years
+pop_single <- sprague(pop_5year)
+
+# First 15 ages
+head(pop_single, 15)
+
+# Total is preserved
+c(Sum_5year = sum(pop_5year), Sum_single = sum(pop_single))
+```
+
+## Indices for Old Ages
+
+For data quality assessment at older ages, specialized indices are available:
+
+```{r old-age-indices}
+# Create old-age data with heaping
+set.seed(42)
+old_ages <- c(sample(85:105, 3000, replace = TRUE),
+              rep(c(90, 95, 100), each = 200))  # heaping at round ages
+
+# Coale-Li index (designed for ages 60+)
+coale_li(old_ages, digit = 0, ageMin = 85)
+
+# Jdanov index (for very old ages like 95, 100, 105)
+jdanov(old_ages, Agei = c(95, 100, 105))
+
+# Kannisto index (for a single old age)
+kannisto(old_ages, Agei = 90)
+kannisto(old_ages, Agei = 95)
+```
+
+## Summary
+
+The **heaping** package provides a complete toolkit for handling heaping in survey data:
+
+| Function | Purpose |
+|----------|---------|
+| `whipple()` | Standard and modified Whipple index |
+| `myers()` | Myers' blended index |
+| `bachi()` | Bachi's index |
+| `noumbissi()` | Single-digit Noumbissi index |
+| `spoorenberg()` | Total Modified Whipple index |
+| `coale_li()` | Coale-Li index for old ages |
+| `jdanov()` | Jdanov index for very old ages |
+| `kannisto()` | Kannisto index for single old age |
+| `heaping_indices()` | All common indices at once |
+| `correctHeaps()` | Correct regular heaping patterns |
+| `correctSingleHeap()` | Correct a single heap |
+| `sprague()` | Disaggregate 5-year to single-year ages |
+
+Key advantages over traditional methods:
+
+1. **Preserves individual records** for regression and machine learning
+2. **Multiple correction methods** (log-normal, normal, uniform, kernel)
+3. **Model-based correction** preserves covariate relationships
+4. **Supports sampling weights** for survey data
+5. **Multiple imputation compatible** for uncertainty quantification
+
+## References
+
+- Myers, R. J. (1940). Errors and bias in the reporting of ages in census data. *Transactions of the Actuarial Society of America*, 41, 395-415.
+
+- Spoorenberg, T. and Dutreuilh, C. (2007). Quality of age reporting: extension and application of the modified Whipple's index. *Population*, 62(4), 729-741.
+
+- Sprague, T. B. (1880). Explanation of a new formula for interpolation. *Journal of the Institute of Actuaries*, 22, 270-285.

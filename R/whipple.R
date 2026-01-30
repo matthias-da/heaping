@@ -47,7 +47,7 @@
 #'
 #' @return A single numeric value representing the Whipple index.
 #'
-#' @author Matthias Templ, Alexander Kowarik
+#' @author Matthias Templ
 #'
 #' @seealso \code{\link{sprague}} for disaggregating 5-year age groups.
 #'

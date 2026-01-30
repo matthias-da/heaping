@@ -168,7 +168,7 @@ custom_heaps <- c(12, 18, 21)
 age_custom <- correctHeaps(age5, heaps = custom_heaps, method = "lnorm", seed = 42)
 }
 \references{
-Templ, M. (2024). Correction of heaping on individual level.
+Templ, M. (2026). Correction of heaping on individual level.
 \emph{Journal TBD}.
 
 Templ, M., Meindl, B., Kowarik, A., Alfons, A., Dupriez, O. (2017).
@@ -183,6 +183,6 @@ Other heaping correction:
 \code{\link{correctSingleHeap}()}
 }
 \author{
-Matthias Templ, Bernhard Meindl, Alexander Kowarik
+Matthias Templ, Bernhard Meindl
 }
 \concept{heaping correction}

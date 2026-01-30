@@ -100,10 +100,10 @@
 #'
 #' @family heaping correction
 #'
-#' @author Matthias Templ, Bernhard Meindl, Alexander Kowarik
+#' @author Matthias Templ, Bernhard Meindl
 #'
 #' @references
-#' Templ, M. (2024). Correction of heaping on individual level.
+#' Templ, M. (2026). Correction of heaping on individual level.
 #' \emph{Journal TBD}.
 #'
 #' Templ, M., Meindl, B., Kowarik, A., Alfons, A., Dupriez, O. (2017).
@@ -469,7 +469,7 @@ correctHeaps2 <- correctHeaps
 #'
 #' @family heaping correction
 #'
-#' @author Matthias Templ, Bernhard Meindl, Alexander Kowarik
+#' @author Matthias Templ, Bernhard Meindl
 #'
 #' @export
 #'
