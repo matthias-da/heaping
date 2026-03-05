@@ -307,7 +307,7 @@ test_that("handles data with no heaping gracefully", {
 test_that("handles small datasets", {
   small_data <- c(20, 25, 30, 25, 25, 35, 40)
 
-  expect_no_error(correctHeaps(small_data, heaps = "5year", seed = 42))
+  expect_no_error(suppressWarnings(correctHeaps(small_data, heaps = "5year", seed = 42)))
 })
 
 test_that("handles single value datasets", {

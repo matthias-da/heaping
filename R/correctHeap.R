@@ -198,6 +198,17 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
     stop("'heaps' must be a character ('5year', '10year') or numeric vector")
   }
 
+  # Warn if heap positions cover most unique values
+  n_unique <- length(unique(x_complete))
+  heap_coverage <- length(s[s %in% unique(x_complete)]) / n_unique
+  if (heap_coverage > 0.5) {
+    warning("More than 50% of unique values in 'x' are declared as heaps (",
+            round(heap_coverage * 100), "%). ",
+            "Heaping correction assumes heaps occur at sparse positions ",
+            "(e.g., multiples of 5 or 10). Declaring most values as heaps ",
+            "is likely a misspecification.")
+  }
+
   if (start > max(x_complete, na.rm = TRUE)) {
     stop("Starting year is greater than the maximum age in the data.")
   }
@@ -314,7 +325,7 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
   for (j in seq_along(s)) {
     i <- s[j]
     ratio <- ratios[j]
-    index <- which(x_complete == i)
+    index <- which(xorig == i)
 
     # Skip if no heaping detected (ratio <= 1) or no observations
     if (is.na(ratio) || ratio <= 1 || length(index) == 0) {
@@ -345,7 +356,7 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
 
     if (length(bounds_list) == 1) {
       # Single bound group (5-year heaps or custom)
-      r <- sample(available_idx, size = ssize)
+      r <- available_idx[sample.int(length(available_idx), size = ssize)]
       x_complete[r] <- .draw_replacements_v2(
         n = length(r),
         method = method,
@@ -361,7 +372,7 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
       size1 <- ceiling(ssize / 2)
       size2 <- ssize - size1
 
-      r1 <- sample(available_idx, size = min(size1, length(available_idx)))
+      r1 <- available_idx[sample.int(length(available_idx), size = min(size1, length(available_idx)))]
 
       x_complete[r1] <- .draw_replacements_v2(
         n = length(r1),
@@ -374,7 +385,7 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
 
       remaining_idx <- setdiff(available_idx, r1)
       if (length(remaining_idx) > 0 && size2 > 0) {
-        r2 <- sample(remaining_idx, size = min(size2, length(remaining_idx)))
+        r2 <- remaining_idx[sample.int(length(remaining_idx), size = min(size2, length(remaining_idx)))]
 
         x_complete[r2] <- .draw_replacements_v2(
           n = length(r2),
@@ -615,7 +626,7 @@ correctSingleHeap <- function(x, heap, before = 2, after = 2,
       warning("No suitable observations to change at heap ", heap)
     } else {
       ssize <- min(ssize, length(available_idx))
-      r <- sample(available_idx, size = ssize)
+      r <- available_idx[sample.int(length(available_idx), size = ssize)]
 
       x_complete[r] <- .draw_replacements_v2(
         n = length(r),
