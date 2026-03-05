@@ -57,7 +57,7 @@ age_heaped[indices_to_heap] <- round(age_heaped[indices_to_heap] / 5) * 5
 Let's visualize the difference:
 
 ```{r visualize-heaping, fig.cap="Comparison of true ages vs heaped ages"}
-par(mfrow = c(1, 2))
+oldpar <- par(mfrow = c(1, 2))
 
 # Define breaks to cover the full range
 age_breaks <- seq(0, max(age_true, age_heaped) + 1, by = 1)
@@ -71,6 +71,7 @@ hist(age_true, breaks = age_breaks, col = "steelblue",
 hist(age_heaped, breaks = age_breaks, col = "coral",
      main = "Heaped Ages", xlab = "Age",
      border = "white")
+par(oldpar)
 ```
 
 Notice the spikes at ages ending in 0 and 5 in the heaped data.
@@ -178,7 +179,7 @@ c(Original = whipple(age_true),
 Let's visualize the correction:
 
 ```{r visualize-correction, fig.cap="Before and after heaping correction"}
-par(mfrow = c(1, 2))
+oldpar <- par(mfrow = c(1, 2))
 
 hist(age_heaped, breaks = age_breaks, col = "coral",
      main = "Before Correction", xlab = "Age", border = "white")
@@ -186,7 +187,7 @@ hist(age_heaped, breaks = age_breaks, col = "coral",
 hist(age_corrected, breaks = age_breaks, col = "forestgreen",
      main = "After Correction", xlab = "Age", border = "white")
 
-par(mfrow = c(1, 1))
+par(oldpar)
 ```
 
 ### Correction Methods
@@ -378,7 +379,7 @@ Let's visualize the model-based correction:
 if (requireNamespace("ranger", quietly = TRUE) &&
     requireNamespace("VIM", quietly = TRUE)) {
 
-  par(mfrow = c(2, 2))
+  oldpar <- par(mfrow = c(2, 2))
 
   # Age distributions
   age_breaks <- seq(min(data_example$age) - 1, max(data_example$age) + 1, by = 1)
@@ -402,7 +403,7 @@ if (requireNamespace("ranger", quietly = TRUE) &&
        xlab = "Age", ylab = "log(Income)")
   abline(lm(log_income ~ data_example$age_corrected), col = "darkgreen", lwd = 2)
 
-  par(mfrow = c(1, 1))
+  par(oldpar)
 }
 ```
 
