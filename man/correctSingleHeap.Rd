@@ -11,6 +11,7 @@ correctSingleHeap(
   after = 2,
   method = "lnorm",
   fixed = NULL,
+  weight = NULL,
   seed = NULL,
   na.action = "omit",
   verbose = FALSE,
@@ -43,6 +44,10 @@ Will be rounded to an integer. Default is 2.}
 
 \item{fixed}{numeric vector of indices indicating observations that should
 not be changed. Useful for preserving known accurate values.}
+
+\item{weight}{optional numeric vector of survey weights, the same length as
+\code{x}. When supplied, the heaping ratio and the selection of records to
+correct use weighted counts. Defaults to \code{NULL} (unweighted).}
 
 \item{seed}{optional integer for random seed to ensure reproducibility.}
 

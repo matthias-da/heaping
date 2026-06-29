@@ -289,6 +289,15 @@ test_that("correctSingleHeap respects fixed observations", {
   expect_equal(result[fixed_idx], age23[fixed_idx])
 })
 
+test_that("correctSingleHeap accepts weights and corrects the target heap", {
+  set.seed(3); age <- round(rlnorm(4000, 2.47, 1.3)); age <- age[age < 93]
+  a <- c(age, rep(40, sum(age == 40)))           # inflate heap at 40
+  w <- runif(length(a), 0.5, 2)
+  out <- correctSingleHeap(a, heap = 40, before = 3, after = 3, weight = w, seed = 7)
+  expect_length(out, length(a))
+  expect_lt(sum(out == 40), sum(a == 40))
+})
+
 # =============================================================================
 # Edge Case Tests
 # =============================================================================

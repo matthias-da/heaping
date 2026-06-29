@@ -367,6 +367,9 @@ correctHeaps2 <- correctHeaps
 #'   }
 #' @param fixed numeric vector of indices indicating observations that should
 #'   not be changed. Useful for preserving known accurate values.
+#' @param weight optional numeric vector of survey weights, the same length as
+#'   \code{x}. When supplied, the heaping ratio and the selection of records to
+#'   correct use weighted counts. Defaults to \code{NULL} (unweighted).
 #' @param seed optional integer for random seed to ensure reproducibility.
 #' @param na.action character string specifying how to handle \code{NA} values:
 #'   \code{"omit"} (default) or \code{"fail"}.
@@ -402,7 +405,7 @@ correctHeaps2 <- correctHeaps
 #'                             verbose = TRUE, seed = 42)
 #' print(result$n_changed)
 correctSingleHeap <- function(x, heap, before = 2, after = 2,
-                              method = "lnorm", fixed = NULL,
+                              method = "lnorm", fixed = NULL, weight = NULL,
                               seed = NULL, na.action = "omit",
                               verbose = FALSE, sd = NULL) {
 
@@ -425,24 +428,6 @@ correctSingleHeap <- function(x, heap, before = 2, after = 2,
     stop("'na.action' must be one of: 'omit', 'fail'")
   }
 
-  # Handle NA values
-  na_idx <- which(is.na(x))
-  if (length(na_idx) > 0) {
-    if (na.action == "fail") {
-      stop("NA values found in 'x'. Set na.action = 'omit' to handle them.")
-    }
-    x_complete <- x[!is.na(x)]
-    if (!is.null(fixed)) {
-      fixed <- fixed[!fixed %in% na_idx]
-      fixed <- sapply(fixed, function(i) i - sum(na_idx < i))
-    }
-  } else {
-    x_complete <- x
-  }
-
-  if (!heap %in% unique(x_complete)) {
-    stop("Specified heap value is not present in 'x'.")
-  }
   if (length(heap) != 1) {
     stop("Only one heap value can be specified at a time.")
   }
@@ -455,97 +440,65 @@ correctSingleHeap <- function(x, heap, before = 2, after = 2,
   if (before < 0 || after < 0) {
     stop("Arguments 'before' and 'after' must be non-negative.")
   }
+  if (!is.null(weight)) {
+    if (!is.numeric(weight) || length(weight) != length(x)) {
+      stop("'weight' must be numeric and the same length as 'x'.")
+    }
+  }
+
+  # --- NA handling: drop NAs, remember positions, align weight + fixed ---
+  na_idx <- which(is.na(x))
+  if (length(na_idx) > 0 && na.action == "fail") {
+    stop("NA values found in 'x'. Set na.action = 'omit' to handle them.")
+  }
+  keep    <- if (length(na_idx)) setdiff(seq_along(x), na_idx) else seq_along(x)
+  xc      <- x[keep]
+  wc      <- if (is.null(weight)) NULL else weight[keep]
+  fixed_c <- if (is.null(fixed)) NULL else match(intersect(fixed, keep), keep)
+
+  if (!heap %in% unique(xc)) {
+    stop("Specified heap value is not present in 'x'.")
+  }
 
   before <- round(before)
   after <- round(after)
-
   llow <- heap - before
   lup <- heap + after
 
-  if (llow < 0 || lup > max(x_complete)) {
+  if (llow < 0 || lup > max(xc)) {
     stop("Parameters 'before' or 'after' result in bounds outside the data range.")
   }
 
-  # Calculate ratio
-  tab <- table(x_complete)
-  complete_ages <- seq(0, max(x_complete))
-  complete_tab <- setNames(rep(0, length(complete_ages)), as.character(complete_ages))
-  complete_tab[names(tab)] <- as.numeric(tab)
+  # --- weighted heaping ratio at this single heap ---
+  rr    <- .heap_ratios(xc, heap, wc)
+  hc    <- as.character(heap)
+  ratio <- rr$ratio[hc]
 
-  heap_char <- as.character(heap)
-  before_char <- as.character(heap - 1)
-  after_char <- as.character(heap + 1)
-
-  neighbor_mean <- mean(c(complete_tab[before_char], complete_tab[after_char]))
-  ratio <- if (neighbor_mean > 0) complete_tab[heap_char] / neighbor_mean else NA
-
-  # Fit distribution parameters
-  fit_params <- list()
-  if (method == "lnorm") {
-    age0 <- as.numeric(x_complete)
-    age0[age0 == 0] <- 0.01
-    fit_params$logn <- fitdistrplus::fitdist(age0, "lnorm")
-  } else if (method == "norm") {
-    non_heap_ages <- x_complete[x_complete != heap]
-    if (is.null(sd)) {
-      if (length(non_heap_ages) > 10) {
-        fit_params$sd <- stats::mad(non_heap_ages, constant = 1.4826)
-      } else {
-        fit_params$sd <- stats::sd(x_complete)
-      }
-    } else {
-      fit_params$sd <- sd
-    }
-  } else if (method == "kernel") {
-    non_heap_ages <- x_complete[x_complete != heap]
-    if (length(non_heap_ages) > 10) {
-      fit_params$density <- stats::density(non_heap_ages, from = 0, to = max(x_complete), n = 512)
-    } else {
-      fit_params$density <- stats::density(x_complete, from = 0, to = max(x_complete), n = 512)
-    }
+  # --- PASS 1: select records at the heap to correct (uniform draw, weight stop) ---
+  at     <- which(xc == heap)
+  cand   <- if (is.null(fixed_c)) at else setdiff(at, fixed_c)
+  chosen <- integer(0)
+  if (!is.na(ratio) && ratio > 1 && length(cand)) {
+    excess <- rr$ratio[hc] * rr$expected[hc] - rr$expected[hc]
+    wsel   <- if (is.null(wc)) NULL else wc[cand]
+    chosen <- .select_to_correct(cand, wsel, excess)
   }
 
-  # Find indices to potentially modify
-  index <- which(x_complete == heap)
-
-  if (is.na(ratio) || ratio <= 1) {
-    ssize <- 0
-  } else {
-    ssize <- ceiling(length(index) - length(index) / ratio)
+  # --- PASS 2: fit on the trusted complement, then draw replacements ---
+  result_c <- xc
+  if (length(chosen)) {
+    trusted  <- setdiff(seq_along(xc), chosen)
+    fit_marg <- .fit_marginal(xc[trusted], method, sd)
+    result_c[chosen] <- .draw_marginal(length(chosen), fit_marg, llow, lup)
   }
-
-  n_changed <- 0
-  if (ssize > 0) {
-    available_idx <- if (is.null(fixed)) {
-      index
-    } else {
-      index[!index %in% fixed]
-    }
-
-    if (length(available_idx) == 0) {
-      warning("No suitable observations to change at heap ", heap)
-    } else {
-      ssize <- min(ssize, length(available_idx))
-      r <- available_idx[sample.int(length(available_idx), size = ssize)]
-
-      x_complete[r] <- .draw_replacements_v2(
-        n = length(r),
-        method = method,
-        fit_params = fit_params,
-        center = heap,
-        llow = llow,
-        lup = lup
-      )
-      n_changed <- length(r)
-    }
-  }
+  n_changed <- length(chosen)
 
   # Restore NA values
   if (length(na_idx) > 0) {
     result <- rep(NA_real_, length(x))
-    result[-na_idx] <- x_complete
+    result[keep] <- result_c
   } else {
-    result <- x_complete
+    result <- result_c
   }
 
   if (verbose) {
@@ -554,7 +507,8 @@ correctSingleHeap <- function(x, heap, before = 2, after = 2,
       n_changed = n_changed,
       ratio = ratio,
       method = method,
-      seed = seed
+      seed = seed,
+      weighted = !is.null(weight)
     )
   } else {
     result

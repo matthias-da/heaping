@@ -1,3 +1,33 @@
+# heaping 0.2.0
+
+## Major changes
+
+* `correctHeaps()` and `correctSingleHeap()` gain survey-weight support via a
+  new `weight=` argument. Heaping ratios and the selection of records to correct
+  then use weighted counts (records are drawn uniformly and accumulated until
+  their cumulative weight covers the excess mass).
+
+* **Breaking:** model-based correction is redesigned. Instead of a random-forest
+  sign-adjustment heuristic, `correctHeaps(model=, dataModel=)` now fits an
+  imputation model for age given the covariates on the *retained* ("trusted")
+  records and draws covariate-conditional replacements for the selected heaped
+  records. The engine is selectable via `model.engine = c("ranger", "lm")`
+  (a `ranger` quantile forest by default). Corrected values therefore differ
+  from 0.1.x, even with the same seed.
+
+* New `width=` argument controls the truncation half-window; 10-year heaps now
+  use a single symmetric window instead of the previous two-stage +/-4 / +/-5
+  correction.
+
+* New `correctHeapsMI()` produces `m` corrected datasets (with deterministically
+  derived seeds) for multiple-imputation inference, with a `print()` method for
+  the returned `heapingMI` object.
+
+## Internal
+
+* Removed the internal helpers `.adjust_signs()` and the legacy
+  `.draw_replacements()`; the correction engine now lives in `R/impute-model.R`.
+
 # heaping 0.1.1
 
 ## Bug fixes
