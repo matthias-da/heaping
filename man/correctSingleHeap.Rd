@@ -88,7 +88,8 @@ print(result$n_changed)
 \code{\link{correctHeaps}} for correcting regular heaping patterns.
 
 Other heaping correction: 
-\code{\link{correctHeaps}()}
+\code{\link{correctHeaps}()},
+\code{\link{correctHeapsMI}()}
 }
 \author{
 Matthias Templ, Bernhard Meindl

@@ -214,6 +214,7 @@ Information. \emph{Journal of Statistical Software}, \strong{79}(10), 1-38.
 \code{\link{correctSingleHeap}} for correcting a single specific heap.
 
 Other heaping correction: 
+\code{\link{correctHeapsMI}()},
 \code{\link{correctSingleHeap}()}
 }
 \author{
