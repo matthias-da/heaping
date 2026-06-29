@@ -316,3 +316,48 @@ test_that("handles single value datasets", {
   # Should not error but may warn
   expect_no_error(suppressWarnings(correctHeaps(single_val, heaps = "5year", seed = 42)))
 })
+
+# =============================================================================
+# Redesign (v0.2.0) Tests: weighted ratios, trusted-set conditional draw
+# =============================================================================
+
+heaped5 <- function() {
+  set.seed(123); age <- round(rlnorm(10000, 2.466869, 1.652772)); age <- age[age < 93]
+  y5 <- seq(0, max(age), 5); sample(c(age, age[age %in% y5]))
+}
+
+test_that("5-year simple correction drives Whipple toward 100 (behavioural invariant)", {
+  a <- heaped5()
+  expect_gt(whipple(a), 125)
+  out <- correctHeaps(a, heaps = "5year", method = "lnorm", seed = 42)
+  expect_lt(whipple(out), 110)
+  expect_length(out, length(a))
+})
+
+test_that("weighted correction runs and reduces heaping", {
+  a <- heaped5(); set.seed(11); w <- runif(length(a), 0.5, 2)
+  out <- correctHeaps(a, heaps = "5year", weight = w, seed = 42)
+  expect_lt(whipple(out, weight = w), whipple(a, weight = w))
+})
+
+test_that("model arm (ranger + lm) runs, no sign-flip path, trusted = complement", {
+  skip_if_not_installed("ranger")
+  set.seed(5); n <- 4000
+  z <- rnorm(n); age <- round(30 + 6 * z + rlnorm(n, 1.5, 0.6)); age <- pmin(age, 92)
+  age[age < 0] <- 0
+  y5 <- seq(0, max(age), 5); keep <- sample(c(seq_len(n), which(age %in% y5)))
+  a <- age[keep]; dm <- data.frame(age = a, z = z[keep])
+  for (eng in c("ranger", "lm")) {
+    out <- correctHeaps(a, heaps = "5year", model = age ~ z, dataModel = dm,
+                        model.engine = eng, seed = 1)
+    expect_length(out, length(a)); expect_lt(whipple(out), whipple(a))
+  }
+})
+
+test_that("verbose exposes weighted flag, ratios, and fallback count", {
+  a <- heaped5()
+  v <- correctHeaps(a, heaps = "5year", seed = 42, verbose = TRUE)
+  expect_true(all(c("corrected", "n_changed", "ratios", "n_fallback", "weighted") %in% names(v)))
+  expect_false(v$weighted)
+  expect_identical(v$n_fallback, 0L)
+})

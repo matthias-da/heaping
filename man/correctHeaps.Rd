@@ -13,6 +13,10 @@ correctHeaps(
   fixed = NULL,
   model = NULL,
   dataModel = NULL,
+  model.engine = "ranger",
+  weight = NULL,
+  width = NULL,
+  case.weights = FALSE,
   seed = NULL,
   na.action = "omit",
   verbose = FALSE,
@@ -27,6 +31,10 @@ correctHeaps2(
   fixed = NULL,
   model = NULL,
   dataModel = NULL,
+  model.engine = "ranger",
+  weight = NULL,
+  width = NULL,
+  case.weights = FALSE,
   seed = NULL,
   na.action = "omit",
   verbose = FALSE,
@@ -60,14 +68,37 @@ Ignored if \code{heaps} is a numeric vector.}
 \item{fixed}{numeric vector of indices indicating observations that should
 not be changed. Useful for preserving known accurate values.}
 
-\item{model}{optional formula for model-based correction. When provided,
-a random forest model is fit to predict age from other variables, and
-the correction direction is adjusted to be consistent with this prediction.
-Requires packages \pkg{ranger} and \pkg{VIM}.}
+\item{model}{optional formula (e.g. \code{age ~ x1 + x2}) for model-based
+correction. When provided, an imputation model for age given the covariates
+is fit on the \emph{trusted} (non-selected) records and used to draw
+covariate-conditional replacements for the selected heaped records. This
+replaces the earlier random-forest sign-adjustment heuristic. Requires
+\pkg{ranger} (for \code{model.engine = "ranger"}); \pkg{VIM} is used only
+when \code{dataModel} contains missing values.}
 
 \item{dataModel}{data frame containing variables for the model formula.
 Required when \code{model} is specified. Missing values are imputed
 using k-nearest neighbors via \code{\link[VIM]{kNN}}.}
+
+\item{model.engine}{character string selecting the conditional model engine
+when \code{model} is supplied: \code{"ranger"} (quantile regression forest,
+the default) or \code{"lm"} (linear model with a truncated-normal residual
+draw). Ignored when \code{model} is \code{NULL}.}
+
+\item{weight}{optional numeric vector of survey weights, the same length as
+\code{x}. When supplied, heaping ratios and the selection of records to
+correct use weighted counts: records are drawn uniformly at random and
+accumulated until their cumulative weight covers the excess mass, and the
+weight is added as a predictor in the model-based arm
+(Reiter-Raghunathan-Zanutto). Defaults to \code{NULL} (unweighted).}
+
+\item{width}{optional half-width (in years) of the truncation window around
+each heap. Defaults to 2 for 5-year and custom heaps and 5 for 10-year
+heaps.}
+
+\item{case.weights}{logical; if \code{TRUE} and \code{weight} is supplied,
+the weights are additionally passed as case weights to the model engine.
+Defaults to \code{FALSE}.}
 
 \item{seed}{optional integer for random seed to ensure reproducibility.
   If \code{NULL} (default
@@ -97,6 +128,10 @@ If \code{verbose = FALSE}, a numeric vector of the same length as
     \item{ratios}{named vector of heaping ratios per heap age}
     \item{method}{method used}
     \item{seed}{seed used (if any)}
+    \item{n_fallback}{number of model-based draws that fell back to the
+      marginal distribution because no fitted conditional quantile lay within
+      the heap window (0 for the simple, non-model arm)}
+    \item{weighted}{logical; whether weighted counts were used}
   }
 }
 \description{
@@ -109,17 +144,16 @@ observations with draws from fitted truncated distributions.
 Correct for age heaping at regular intervals using truncated distributions.
 
 
-For method \dQuote{lnorm}, a truncated log-normal distribution is fit to
-the whole age distribution. Then for each age heap (at 0, 5, 10, 15, ...
-or 0, 10, 20, ...) random numbers from a truncated log-normal distribution
-(with lower and upper bounds) are drawn.
+For method \dQuote{lnorm}, a truncated log-normal distribution is fit to the
+\emph{trusted} (non-selected) records. Then for each age heap (at 0, 5, 10,
+15, ... or 0, 10, 20, ...) random numbers from a truncated log-normal
+distribution (with lower and upper bounds) are drawn for the selected records.
 
-The correction range depends on the heap type:
-\itemize{
-  \item For 5-year heaps: values are drawn from \eqn{\pm 2} years around the heap
-  \item For 10-year heaps: values are drawn in two groups, \eqn{\pm 4} and
-    \eqn{\pm 5} years around the heap
-}
+The correction range is controlled by \code{width}: replacement values are
+drawn from a truncated distribution on \eqn{[\,\mathrm{heap}-\mathrm{width},\,
+\mathrm{heap}+\mathrm{width}\,]}. The default half-width is 2 years for 5-year
+and custom heaps and 5 years for 10-year heaps (a single symmetric window,
+replacing the earlier two-stage \eqn{\pm 4} / \eqn{\pm 5} correction).
 
 The ratio of observations to replace is calculated by comparing the count
 at each heap age to the arithmetic mean of the two neighboring ages. For

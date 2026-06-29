@@ -9,17 +9,16 @@
 #' observations with draws from fitted truncated distributions.
 #'
 #' @details
-#' For method \dQuote{lnorm}, a truncated log-normal distribution is fit to
-#' the whole age distribution. Then for each age heap (at 0, 5, 10, 15, ...
-#' or 0, 10, 20, ...) random numbers from a truncated log-normal distribution
-#' (with lower and upper bounds) are drawn.
+#' For method \dQuote{lnorm}, a truncated log-normal distribution is fit to the
+#' \emph{trusted} (non-selected) records. Then for each age heap (at 0, 5, 10,
+#' 15, ... or 0, 10, 20, ...) random numbers from a truncated log-normal
+#' distribution (with lower and upper bounds) are drawn for the selected records.
 #'
-#' The correction range depends on the heap type:
-#' \itemize{
-#'   \item For 5-year heaps: values are drawn from \eqn{\pm 2} years around the heap
-#'   \item For 10-year heaps: values are drawn in two groups, \eqn{\pm 4} and
-#'     \eqn{\pm 5} years around the heap
-#' }
+#' The correction range is controlled by \code{width}: replacement values are
+#' drawn from a truncated distribution on \eqn{[\,\mathrm{heap}-\mathrm{width},\,
+#' \mathrm{heap}+\mathrm{width}\,]}. The default half-width is 2 years for 5-year
+#' and custom heaps and 5 years for 10-year heaps (a single symmetric window,
+#' replacing the earlier two-stage \eqn{\pm 4} / \eqn{\pm 5} correction).
 #'
 #' The ratio of observations to replace is calculated by comparing the count
 #' at each heap age to the arithmetic mean of the two neighboring ages. For
@@ -63,13 +62,32 @@
 #'   Ignored if \code{heaps} is a numeric vector.
 #' @param fixed numeric vector of indices indicating observations that should
 #'   not be changed. Useful for preserving known accurate values.
-#' @param model optional formula for model-based correction. When provided,
-#'   a random forest model is fit to predict age from other variables, and
-#'   the correction direction is adjusted to be consistent with this prediction.
-#'   Requires packages \pkg{ranger} and \pkg{VIM}.
+#' @param model optional formula (e.g. \code{age ~ x1 + x2}) for model-based
+#'   correction. When provided, an imputation model for age given the covariates
+#'   is fit on the \emph{trusted} (non-selected) records and used to draw
+#'   covariate-conditional replacements for the selected heaped records. This
+#'   replaces the earlier random-forest sign-adjustment heuristic. Requires
+#'   \pkg{ranger} (for \code{model.engine = "ranger"}); \pkg{VIM} is used only
+#'   when \code{dataModel} contains missing values.
 #' @param dataModel data frame containing variables for the model formula.
 #'   Required when \code{model} is specified. Missing values are imputed
 #'   using k-nearest neighbors via \code{\link[VIM]{kNN}}.
+#' @param model.engine character string selecting the conditional model engine
+#'   when \code{model} is supplied: \code{"ranger"} (quantile regression forest,
+#'   the default) or \code{"lm"} (linear model with a truncated-normal residual
+#'   draw). Ignored when \code{model} is \code{NULL}.
+#' @param weight optional numeric vector of survey weights, the same length as
+#'   \code{x}. When supplied, heaping ratios and the selection of records to
+#'   correct use weighted counts: records are drawn uniformly at random and
+#'   accumulated until their cumulative weight covers the excess mass, and the
+#'   weight is added as a predictor in the model-based arm
+#'   (Reiter-Raghunathan-Zanutto). Defaults to \code{NULL} (unweighted).
+#' @param width optional half-width (in years) of the truncation window around
+#'   each heap. Defaults to 2 for 5-year and custom heaps and 5 for 10-year
+#'   heaps.
+#' @param case.weights logical; if \code{TRUE} and \code{weight} is supplied,
+#'   the weights are additionally passed as case weights to the model engine.
+#'   Defaults to \code{FALSE}.
 #' @param seed optional integer for random seed to ensure reproducibility.
 #'   If \code{NULL} (default
 #' ), no seed is set.
@@ -94,6 +112,10 @@
 #'     \item{ratios}{named vector of heaping ratios per heap age}
 #'     \item{method}{method used}
 #'     \item{seed}{seed used (if any)}
+#'     \item{n_fallback}{number of model-based draws that fell back to the
+#'       marginal distribution because no fitted conditional quantile lay within
+#'       the heap window (0 for the simple, non-model arm)}
+#'     \item{weighted}{logical; whether weighted counts were used}
 #'   }
 #'
 #' @seealso \code{\link{correctSingleHeap}} for correcting a single specific heap.
@@ -139,9 +161,9 @@
 #' age_custom <- correctHeaps(age5, heaps = custom_heaps, method = "lnorm", seed = 42)
 correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
                          fixed = NULL, model = NULL, dataModel = NULL,
-                         seed = NULL, na.action = "omit", verbose = FALSE,
-                         sd = NULL) {
-
+                         model.engine = "ranger", weight = NULL, width = NULL,
+                         case.weights = FALSE, seed = NULL, na.action = "omit",
+                         verbose = FALSE, sd = NULL) {
 
   # Set seed if provided
   if (!is.null(seed)) {
@@ -162,45 +184,47 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
     stop("'na.action' must be one of: 'omit', 'fail'")
   }
 
-  # Handle NA values
-  na_idx <- which(is.na(x))
-  if (length(na_idx) > 0) {
-    if (na.action == "fail") {
-      stop("NA values found in 'x'. Set na.action = 'omit' to handle them.")
+  if (!is.null(weight)) {
+    if (!is.numeric(weight) || length(weight) != length(x)) {
+      stop("'weight' must be numeric and the same length as 'x'.")
     }
-    # Store original positions and remove NAs
-    x_complete <- x[!is.na(x)]
-    # Adjust fixed indices if needed
-    if (!is.null(fixed)) {
-      fixed <- fixed[!fixed %in% na_idx]
-      # Recalculate indices after NA removal
-      fixed <- sapply(fixed, function(i) i - sum(na_idx < i))
-    }
-  } else {
-    x_complete <- x
   }
 
-  # Handle heaps parameter - can be character or numeric vector
+  # --- NA handling: drop NAs, remember positions, align weight/dataModel/fixed ---
+  na_idx <- which(is.na(x))
+  if (length(na_idx) > 0 && na.action == "fail") {
+    stop("NA values found in 'x'. Set na.action = 'omit' to handle them.")
+  }
+  keep    <- if (length(na_idx)) setdiff(seq_along(x), na_idx) else seq_along(x)
+  xc      <- x[keep]
+  wc      <- if (is.null(weight))    NULL else weight[keep]
+  dm      <- if (is.null(dataModel)) NULL else dataModel[keep, , drop = FALSE]
+  fixed_c <- if (is.null(fixed))     NULL else match(intersect(fixed, keep), keep)
 
- if (is.character(heaps)) {
+  # --- heap sequence + truncation half-width ---
+  if (is.character(heaps)) {
     if (!heaps %in% c("5year", "10year")) {
       stop("Unsupported value in argument 'heaps'. ",
            "Must be one of: '5year', '10year', or a numeric vector of heap positions")
     }
     heap_interval <- if (heaps == "10year") 10 else 5
-    s <- seq(start, max(x_complete), by = heap_interval)
+    s <- seq(start, max(xc), by = heap_interval)
+    if (is.null(width)) width <- if (heap_interval == 10) 5 else 2
   } else if (is.numeric(heaps)) {
-    # Custom heap positions
     s <- sort(unique(heaps))
-    s <- s[s >= 0 & s <= max(x_complete)]
-    heap_interval <- NA
+    s <- s[s >= 0 & s <= max(xc)]
+    if (is.null(width)) width <- 2
   } else {
     stop("'heaps' must be a character ('5year', '10year') or numeric vector")
   }
 
-  # Warn if heap positions cover most unique values
-  n_unique <- length(unique(x_complete))
-  heap_coverage <- length(s[s %in% unique(x_complete)]) / n_unique
+  if (start > max(xc, na.rm = TRUE)) {
+    stop("Starting year is greater than the maximum age in the data.")
+  }
+
+  # Warn if heap positions cover most unique values (likely misspecification)
+  n_unique <- length(unique(xc))
+  heap_coverage <- length(s[s %in% unique(xc)]) / n_unique
   if (heap_coverage > 0.5) {
     warning("More than 50% of unique values in 'x' are declared as heaps (",
             round(heap_coverage * 100), "%). ",
@@ -209,223 +233,99 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
             "is likely a misspecification.")
   }
 
-  if (start > max(x_complete, na.rm = TRUE)) {
-    stop("Starting year is greater than the maximum age in the data.")
-  }
+  # --- weighted heaping ratios + expected (local-smooth) counts ---
+  rr     <- .heap_ratios(xc, s, wc)
+  ratios <- rr$ratio
+  maxage <- max(xc)
 
-  # Model-based correction setup
-  pred <- NULL
-  if (!is.null(model)) {
-    if (!inherits(model, "formula")) {
-      stop("'model' must be a valid formula.")
-    }
-    if (is.null(dataModel)) {
-      stop("'dataModel' must be provided when 'model' is specified.")
-    }
-    if (!requireNamespace("ranger", quietly = TRUE)) {
-      stop("Package 'ranger' is required for model-based correction.")
-    }
-    if (!requireNamespace("VIM", quietly = TRUE)) {
-      stop("Package 'VIM' is required for model-based correction.")
-    }
-    if (any(is.na(dataModel))) {
-      dataModel <- VIM::kNN(dataModel, imp_var = FALSE)
-    }
-    rf <- ranger::ranger(formula = model, data = dataModel)
-    pred <- predict(object = rf, data = dataModel, type = "response")
-  }
-
-  xorig <- x_complete
-
-  # Build complete age frequency table
-  tab <- table(x_complete)
-  complete_ages <- seq(0, max(x_complete, na.rm = TRUE))
-  complete_tab <- setNames(rep(0, length(complete_ages)), as.character(complete_ages))
-  complete_tab[names(tab)] <- as.numeric(tab)
-
-  # Calculate replacement ratios using named indexing for clarity
-  calc_ratio <- function(heap_age, freq_table) {
-    heap_char <- as.character(heap_age)
-    before_char <- as.character(heap_age - 1)
-    after_char <- as.character(heap_age + 1)
-
-    if (!before_char %in% names(freq_table) || !after_char %in% names(freq_table)) {
-      return(NA)
-    }
-
-    neighbor_mean <- mean(c(freq_table[before_char], freq_table[after_char]))
-    if (neighbor_mean == 0) return(NA)
-
-    freq_table[heap_char] / neighbor_mean
-  }
-
-  ratios <- sapply(s, calc_ratio, freq_table = complete_tab)
-  names(ratios) <- as.character(s)
-
-  # Fit distribution parameters
-  fit_params <- list()
-  if (method == "lnorm") {
-    age0 <- as.numeric(x_complete)
-    age0[age0 == 0] <- 0.01
-    fit_params$logn <- fitdistrplus::fitdist(age0, "lnorm")
-  } else if (method == "norm") {
-    # Estimate sd from non-heap ages using MAD (robust to heaping)
-    non_heap_ages <- x_complete[!x_complete %in% s]
-    if (is.null(sd)) {
-      if (length(non_heap_ages) > 10) {
-        fit_params$sd <- stats::mad(non_heap_ages, constant = 1.4826)
-      } else {
-        fit_params$sd <- stats::sd(x_complete)
-      }
-    } else {
-      fit_params$sd <- sd
-    }
-  } else if (method == "kernel") {
-    # For kernel method, estimate density from non-heap ages
-    non_heap_ages <- x_complete[!x_complete %in% s]
-    if (length(non_heap_ages) > 10) {
-      fit_params$density <- stats::density(non_heap_ages,
-                                           from = 0,
-                                           to = max(x_complete),
-                                           n = 512)
-    } else {
-      # Fallback to full data if not enough non-heap observations
-      fit_params$density <- stats::density(x_complete,
-                                           from = 0,
-                                           to = max(x_complete),
-                                           n = 512)
-    }
-  }
-
-  # Track changes for verbose output
+  # --- PASS 1: select records to correct (uniform draw, weight-based stopping) ---
+  # excess = (weighted) count at the heap minus the expected count; with unit
+  # weights the number selected reduces to ceiling(n - n/ratio), the legacy size.
   changes_by_heap <- setNames(rep(0L, length(s)), as.character(s))
-
-  # Determine bounds based on heap type
-  get_bounds <- function(heap_age, heap_interval, max_val) {
-    if (is.na(heap_interval)) {
-      # Custom heaps: use ±2 by default
-      list(
-        list(lower = max(heap_age - 2, 0), upper = min(heap_age + 2, max_val))
-      )
-    } else if (heap_interval == 10) {
-      # 10-year heaps: two groups
-      list(
-        list(lower = max(heap_age - 4, 0), upper = min(heap_age + 4, max_val)),
-        list(lower = max(heap_age - 5, 0), upper = min(heap_age + 5, max_val))
-      )
-    } else {
-      # 5-year heaps: single group
-      list(
-        list(lower = max(heap_age - 2, 0), upper = min(heap_age + 2, max_val))
-      )
-    }
+  sel_idx <- integer(0); sel_low <- numeric(0); sel_up <- numeric(0)
+  for (a in s) {
+    hc <- as.character(a)
+    rt <- ratios[hc]
+    if (is.na(rt) || rt <= 1) next
+    at   <- which(xc == a)
+    cand <- if (is.null(fixed_c)) at else setdiff(at, fixed_c)
+    if (!length(cand)) next
+    excess <- rr$ratio[hc] * rr$expected[hc] - rr$expected[hc]
+    wsel   <- if (is.null(wc)) NULL else wc[cand]
+    chosen <- .select_to_correct(cand, wsel, excess)
+    if (!length(chosen)) next
+    sel_idx <- c(sel_idx, chosen)
+    sel_low <- c(sel_low, rep(max(a - width, 0),      length(chosen)))
+    sel_up  <- c(sel_up,  rep(min(a + width, maxage), length(chosen)))
+    changes_by_heap[hc] <- length(chosen)
   }
 
-  # Process each heap
-  for (j in seq_along(s)) {
-    i <- s[j]
-    ratio <- ratios[j]
-    index <- which(xorig == i)
+  # --- PASS 2: fit on the trusted complement, then draw replacements ---
+  result_c   <- xc
+  n_fallback <- 0L
+  fit_marg   <- NULL
+  if (length(sel_idx)) {
+    trusted  <- setdiff(seq_along(xc), sel_idx)
+    fit_marg <- .fit_marginal(xc[trusted], method, sd)
 
-    # Skip if no heaping detected (ratio <= 1) or no observations
-    if (is.na(ratio) || ratio <= 1 || length(index) == 0) {
-      next
-    }
-
-    # Calculate sample size
-    ssize <- ceiling(length(index) - length(index) / ratio)
-    if (ssize <= 0) next
-
-    # Get bounds for this heap
-    bounds_list <- get_bounds(i, heap_interval, max(x_complete))
-
-    # Handle fixed observations
-    available_idx <- if (is.null(fixed)) {
-      index
-    } else {
-      index[!index %in% fixed]
-    }
-
-    if (length(available_idx) == 0) {
-      warning("No suitable observations to change at heap ", i)
-      next
-    }
-
-    # Adjust sample size if not enough available
-    ssize <- min(ssize, length(available_idx))
-
-    if (length(bounds_list) == 1) {
-      # Single bound group (5-year heaps or custom)
-      r <- available_idx[sample.int(length(available_idx), size = ssize)]
-      x_complete[r] <- .draw_replacements_v2(
-        n = length(r),
-        method = method,
-        fit_params = fit_params,
-        center = i,
-        llow = bounds_list[[1]]$lower,
-        lup = bounds_list[[1]]$upper
-      )
-      changes_by_heap[as.character(i)] <- length(r)
-
-    } else {
-      # Two bound groups (10-year heaps)
-      size1 <- ceiling(ssize / 2)
-      size2 <- ssize - size1
-
-      r1 <- available_idx[sample.int(length(available_idx), size = min(size1, length(available_idx)))]
-
-      x_complete[r1] <- .draw_replacements_v2(
-        n = length(r1),
-        method = method,
-        fit_params = fit_params,
-        center = i,
-        llow = bounds_list[[1]]$lower,
-        lup = bounds_list[[1]]$upper
-      )
-
-      remaining_idx <- setdiff(available_idx, r1)
-      if (length(remaining_idx) > 0 && size2 > 0) {
-        r2 <- remaining_idx[sample.int(length(remaining_idx), size = min(size2, length(remaining_idx)))]
-
-        x_complete[r2] <- .draw_replacements_v2(
-          n = length(r2),
-          method = method,
-          fit_params = fit_params,
-          center = i,
-          llow = bounds_list[[2]]$lower,
-          lup = bounds_list[[2]]$upper
-        )
-
-        changes_by_heap[as.character(i)] <- length(r1) + length(r2)
-      } else {
-        changes_by_heap[as.character(i)] <- length(r1)
+    if (is.null(model)) {
+      # simple (marginal) arm: draw per distinct window, vectorised
+      key <- paste(sel_low, sel_up, sep = ":")
+      for (g in unique(key)) {
+        ix <- which(key == g)
+        result_c[sel_idx[ix]] <- .draw_marginal(length(ix), fit_marg,
+                                                 sel_low[ix[1]], sel_up[ix[1]])
       }
+    } else {
+      # model arm: covariate-conditional predictive draw fit on the trusted set
+      if (!inherits(model, "formula")) {
+        stop("'model' must be a valid formula.")
+      }
+      if (is.null(dm)) {
+        stop("'dataModel' must be provided when 'model' is specified.")
+      }
+      if (any(is.na(dm))) {
+        if (!requireNamespace("VIM", quietly = TRUE)) {
+          stop("Package 'VIM' is required to impute missing covariates.")
+        }
+        dm <- VIM::kNN(dm, imp_var = FALSE)
+      }
+      wcol <- NULL
+      if (!is.null(wc)) {
+        dm[[".weight"]] <- wc
+        wcol <- ".weight"
+        message("Adding sampling weight as a predictor in the imputation model ",
+                "(Reiter-Raghunathan-Zanutto).")
+      }
+      cw    <- if (isTRUE(case.weights) && !is.null(wc)) wc[trusted] else NULL
+      fit_c <- .fit_cond(dm[trusted, , drop = FALSE], model, model.engine, wcol, cw)
+      drawn <- .draw_cond(fit_c, dm[sel_idx, , drop = FALSE], sel_low, sel_up, fit_marg)
+      n_fallback <- attr(drawn, "n_fallback")
+      if (is.null(n_fallback)) n_fallback <- 0L
+      result_c[sel_idx] <- as.numeric(drawn)
     }
-  }
-
-  # Apply model-based sign adjustment if requested
-  if (!is.null(model) && !is.null(pred)) {
-    x_complete <- .adjust_signs(xorig, x_complete, pred$predictions)
   }
 
   # Restore NA values to original positions
   if (length(na_idx) > 0) {
     result <- rep(NA_real_, length(x))
-    result[-na_idx] <- x_complete
+    result[keep] <- result_c
   } else {
-    result <- x_complete
+    result <- result_c
   }
 
   # Return result
   if (verbose) {
     list(
       corrected = result,
-      n_changed = sum(changes_by_heap),
+      n_changed = length(sel_idx),
       changes_by_heap = changes_by_heap[changes_by_heap > 0],
       ratios = ratios,
       method = method,
       seed = seed,
-      fit_params = if (method == "norm") list(sd = fit_params$sd) else NULL
+      fit_params = if (method == "norm" && !is.null(fit_marg)) list(sd = fit_marg$sd) else NULL,
+      n_fallback = n_fallback,
+      weighted = !is.null(weight)
     )
   } else {
     result
@@ -725,47 +625,4 @@ correctSingleHeap <- function(x, heap, before = 2, after = 2,
   sampled <- pmax(llow, pmin(lup, round(sampled)))
 
   as.integer(sampled)
-}
-
-
-# Internal helper function for model-based sign adjustment
-#
-# @param xorig original values before correction
-# @param x corrected values
-# @param predictions model predictions
-# @return adjusted numeric vector
-# @keywords internal
-.adjust_signs <- function(xorig, x, predictions) {
-  w <- !(xorig == x)
-  if (sum(w) == 0) return(x)
-
-  signs <- (xorig - x)[w] > 0
-  signsModel <- (xorig - predictions)[w] > 0
-  changesigns <- signs != signsModel
-
-  difference <- x[w] - xorig[w]
-  difference[changesigns] <- -difference[changesigns]
-
-  adjusted_x <- x
-  adjusted_x[w] <- xorig[w] + difference
-
-  adjusted_x
-}
-
-
-# Legacy function for backward compatibility
-# Uses old algorithm to draw replacements
-.draw_replacements <- function(n, method, logn, center, llow, lup) {
-  if (method == "lnorm") {
-    round(EnvStats::rlnormTrunc(n,
-                                meanlog = logn$estimate[1],
-                                sdlog = as.numeric(logn$estimate[2]),
-                                min = llow, max = lup))
-  } else if (method == "norm") {
-    round(EnvStats::rnormTrunc(n,
-                               mean = center, sd = 1,
-                               min = llow, max = lup))
-  } else {
-    sample(llow:lup, n, replace = TRUE)
-  }
 }
