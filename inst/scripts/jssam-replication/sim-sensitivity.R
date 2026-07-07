@@ -43,6 +43,8 @@ rownames(B) <- paste0("width=", 1:4); print(as.data.frame(B))
 
 cat("\nD) Heaping interval (lnorm, simple arm, default width, intensity 0.3):\n")
 set.seed(31); h10 <- relabel(true_age, 0.3, 10)
+cat(sprintf("   (heaped 10yr/30%% reference: Whipple=%.1f MAPE=%.1f JSD=%.4f)\n",
+            unname(whipple(h10)), mape(distn(h10), p_true), jsd(distn(h10), p_true)))
 print(as.data.frame(rbind(`5-year`  = dmet(correctHeaps(h5,  "5year",  "lnorm", seed = 1)),
                           `10-year` = dmet(correctHeaps(h10, "10year", "lnorm", seed = 1)))))
 
