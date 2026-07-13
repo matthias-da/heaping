@@ -42,8 +42,10 @@
 #' set.seed(123)
 #' age <- round(rlnorm(2000, meanlog = 2.466869, sdlog = 1.652772))
 #' age <- age[age < 93]
-#' year5 <- seq(0, max(age), 5)
-#' age5 <- sample(c(age, age[age %in% year5]))
+#' # introduce 5-year heaping by relabelling a share of records
+#' k <- sample(length(age), round(0.3 * length(age)))
+#' age5 <- age
+#' age5[k] <- round(age5[k] / 5) * 5
 #'
 #' # Five corrected datasets for multiple-imputation inference
 #' mi <- correctHeapsMI(age5, m = 5, heaps = "5year", seed = 42)

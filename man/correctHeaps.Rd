@@ -182,9 +182,11 @@ set.seed(123)
 age <- rlnorm(10000, meanlog = 2.466869, sdlog = 1.652772)
 age <- round(age[age < 93])
 
-# Artificially introduce 5-year heaping
-year5 <- seq(0, max(age), 5)
-age5 <- sample(c(age, age[age \%in\% year5]))
+# Artificially introduce 5-year heaping by relabelling (misreporting)
+# a share of records to the nearest multiple of five
+k <- sample(length(age), round(0.3 * length(age)))
+age5 <- age
+age5[k] <- round(age5[k] / 5) * 5
 
 # Correct with reproducible results
 age5_corrected <- correctHeaps(age5, heaps = "5year", method = "lnorm", seed = 42)

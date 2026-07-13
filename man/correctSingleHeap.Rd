@@ -77,8 +77,12 @@ set.seed(123)
 age <- rlnorm(10000, meanlog = 2.466869, sdlog = 1.652772)
 age <- round(age[age < 93])
 
-# Artificially introduce a heap at age 23
-age23 <- c(age, rep(23, length = sum(age == 23)))
+# Artificially introduce a heap at age 23 by relabelling (misreporting)
+# half of the nearby ages 21-25 to 23
+k <- which(age \%in\% 21:25)
+k <- sample(k, round(0.5 * length(k)))
+age23 <- age
+age23[k] <- 23
 
 # Correct with reproducible results
 age23_corrected <- correctSingleHeap(age23, heap = 23, before = 5, after = 5,
