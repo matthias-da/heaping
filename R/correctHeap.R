@@ -24,6 +24,16 @@
 #' at each heap age to the arithmetic mean of the two neighboring ages. For
 #' example, for age heap 5, the ratio is: count(age=5) / mean(count(age=4), count(age=6)).
 #'
+#' A heap age without a neighbour on both sides is not corrected by default.
+#' With \code{boundary = "lower"}, a heap at the smallest observed age (typically
+#' age 0) is corrected by a one-sided rule: the expected count is taken from the
+#' inner neighbour alone, \code{boundary.bin * count(heap + 1)}, and the
+#' replacements are drawn from the one-sided window
+#' \eqn{[\,\mathrm{heap}+1,\,\mathrm{heap}+\mathrm{width}\,]}, which excludes
+#' the heap age. If the neighbour count is zero, the heap stays uncorrected.
+#' Because the inner neighbour is itself depleted by the heaping, the rule tends
+#' to over-correct at very high heaping intensities.
+#'
 #' Method \dQuote{norm} uses truncated normal distributions instead. The choice
 #' between \dQuote{lnorm} and \dQuote{norm} depends on whether the age
 #' distribution is right-skewed (use \dQuote{lnorm}) or more symmetric
@@ -85,6 +95,14 @@
 #' @param width optional half-width (in years) of the truncation window around
 #'   each heap. Defaults to 2 for 5-year and custom heaps and 5 for 10-year
 #'   heaps.
+#' @param boundary character string: \code{"none"} (default) leaves a heap
+#'   without a neighbour on both sides uncorrected; \code{"lower"} applies the
+#'   one-sided rule to a heap at the smallest observed age (see Details).
+#' @param boundary.bin relative width of the age bin at the lower boundary heap,
+#'   used only with \code{boundary = "lower"}. The default 1 is appropriate for
+#'   ages in completed years. Use 0.5 when ages were obtained by rounding a
+#'   continuous variable that starts at the boundary, so that the boundary age
+#'   covers only half a unit (e.g. age 0 covers \eqn{[0, 0.5)}).
 #' @param case.weights logical; if \code{TRUE} and \code{weight} is supplied,
 #'   the weights are additionally passed as case weights to the model engine.
 #'   Defaults to \code{FALSE}.
@@ -165,7 +183,8 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
                          fixed = NULL, model = NULL, dataModel = NULL,
                          model.engine = "ranger", weight = NULL, width = NULL,
                          case.weights = FALSE, seed = NULL, na.action = "omit",
-                         verbose = FALSE, sd = NULL) {
+                         verbose = FALSE, sd = NULL,
+                         boundary = c("none", "lower"), boundary.bin = 1) {
 
   # Set seed if provided
   if (!is.null(seed)) {
@@ -190,6 +209,12 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
     if (!is.numeric(weight) || length(weight) != length(x)) {
       stop("'weight' must be numeric and the same length as 'x'.")
     }
+  }
+
+  boundary <- match.arg(boundary)
+  if (!is.numeric(boundary.bin) || length(boundary.bin) != 1 ||
+      is.na(boundary.bin) || boundary.bin <= 0) {
+    stop("'boundary.bin' must be a single positive number.")
   }
 
   # --- NA handling: drop NAs, remember positions, align weight/dataModel/fixed ---
@@ -236,7 +261,7 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
   }
 
   # --- weighted heaping ratios + expected (local-smooth) counts ---
-  rr     <- .heap_ratios(xc, s, wc)
+  rr     <- .heap_ratios(xc, s, wc, boundary, boundary.bin)
   ratios <- rr$ratio
   maxage <- max(xc)
 
@@ -257,7 +282,9 @@ correctHeaps <- function(x, heaps = "10year", method = "lnorm", start = 0,
     chosen <- .select_to_correct(cand, wsel, excess)
     if (!length(chosen)) next
     sel_idx <- c(sel_idx, chosen)
-    sel_low <- c(sel_low, rep(max(a - width, 0),      length(chosen)))
+    # one-sided rule: the window starts above the heap age (a + 0.5 rounds to a + 1)
+    low_a   <- if (rr$onesided[hc]) a + 0.5 else max(a - width, 0)
+    sel_low <- c(sel_low, rep(low_a,                  length(chosen)))
     sel_up  <- c(sel_up,  rep(min(a + width, maxage), length(chosen)))
     changes_by_heap[hc] <- length(chosen)
   }
@@ -351,7 +378,9 @@ correctHeaps2 <- correctHeaps
 #'
 #' @param x numeric vector representing ages (typically integers).
 #' @param heap numeric value specifying the age for which heaping should
-#'   be corrected. Must be present in \code{x}.
+#'   be corrected. Must be present in \code{x}. A heap without a neighbour on
+#'   both sides (e.g. age 0) is not corrected here; use
+#'   \code{correctHeaps(x, heaps = heap, boundary = "lower")} instead.
 #' @param before numeric value specifying the number of years before
 #'   the heap to use as the lower bound for replacement values.
 #'   Will be rounded to an integer. Default is 2.

@@ -1,3 +1,16 @@
+# heaping 0.2.1
+
+* `correctHeaps()` gains `boundary = c("none", "lower")` and `boundary.bin`.
+  With `boundary = "lower"`, a heap at the smallest observed age (typically
+  age 0), which has no neighbour below it and was so far left uncorrected, is
+  corrected by a one-sided rule: the expected count is `boundary.bin` times the
+  count at the next age, and the replacements are drawn from the window
+  `heap + 1` to `heap + width`. The default `"none"` reproduces the results of
+  0.2.0. `correctHeapsMI()` passes both arguments through.
+
+* The uniform method no longer misbehaves for a window that contains a single
+  age (it now returns that age).
+
 # heaping 0.2.0
 
 ## Major changes

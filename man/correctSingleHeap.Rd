@@ -22,7 +22,9 @@ correctSingleHeap(
 \item{x}{numeric vector representing ages (typically integers).}
 
 \item{heap}{numeric value specifying the age for which heaping should
-be corrected. Must be present in \code{x}.}
+be corrected. Must be present in \code{x}. A heap without a neighbour on
+both sides (e.g. age 0) is not corrected here; use
+\code{correctHeaps(x, heaps = heap, boundary = "lower")} instead.}
 
 \item{before}{numeric value specifying the number of years before
 the heap to use as the lower bound for replacement values.

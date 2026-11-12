@@ -20,7 +20,9 @@ correctHeaps(
   seed = NULL,
   na.action = "omit",
   verbose = FALSE,
-  sd = NULL
+  sd = NULL,
+  boundary = c("none", "lower"),
+  boundary.bin = 1
 )
 
 correctHeaps2(
@@ -38,7 +40,9 @@ correctHeaps2(
   seed = NULL,
   na.action = "omit",
   verbose = FALSE,
-  sd = NULL
+  sd = NULL,
+  boundary = c("none", "lower"),
+  boundary.bin = 1
 )
 }
 \arguments{
@@ -117,6 +121,16 @@ corrected vector.}
 \item{sd}{optional numeric value for standard deviation when \code{method = "norm"}.
 If \code{NULL} (default), estimated from the data using MAD (median absolute deviation)
 of non-heap ages, which is robust to the heaping.}
+
+\item{boundary}{character string: \code{"none"} (default) leaves a heap
+without a neighbour on both sides uncorrected; \code{"lower"} applies the
+one-sided rule to a heap at the smallest observed age (see Details).}
+
+\item{boundary.bin}{relative width of the age bin at the lower boundary heap,
+used only with \code{boundary = "lower"}. The default 1 is appropriate for
+ages in completed years. Use 0.5 when ages were obtained by rounding a
+continuous variable that starts at the boundary, so that the boundary age
+covers only half a unit (e.g. age 0 covers \eqn{[0, 0.5)}).}
 }
 \value{
 If \code{verbose = FALSE}, a numeric vector of the same length as
@@ -158,6 +172,16 @@ replacing the earlier two-stage \eqn{\pm 4} / \eqn{\pm 5} correction).
 The ratio of observations to replace is calculated by comparing the count
 at each heap age to the arithmetic mean of the two neighboring ages. For
 example, for age heap 5, the ratio is: count(age=5) / mean(count(age=4), count(age=6)).
+
+A heap age without a neighbour on both sides is not corrected by default.
+With \code{boundary = "lower"}, a heap at the smallest observed age (typically
+age 0) is corrected by a one-sided rule: the expected count is taken from the
+inner neighbour alone, \code{boundary.bin * count(heap + 1)}, and the
+replacements are drawn from the one-sided window
+\eqn{[\,\mathrm{heap}+1,\,\mathrm{heap}+\mathrm{width}\,]}, which excludes
+the heap age. If the neighbour count is zero, the heap stays uncorrected.
+Because the inner neighbour is itself depleted by the heaping, the rule tends
+to over-correct at very high heaping intensities.
 
 Method \dQuote{norm} uses truncated normal distributions instead. The choice
 between \dQuote{lnorm} and \dQuote{norm} depends on whether the age

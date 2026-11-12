@@ -19,20 +19,36 @@
 }
 
 # Heaping ratio and expected (local-smooth) count at each heap age in s.
-# Returns list(ratio, expected), both named numeric vectors over as.character(s).
+# Returns list(ratio, expected, onesided): ratio and expected are named numeric
+# vectors over as.character(s); onesided flags the heap handled by the one-sided
+# rule. With boundary = "lower", a heap at the smallest observed age (no record
+# below it) takes its expected count from the inner neighbour alone,
+# bin * count(heap + 1); a zero neighbour count leaves the heap uncorrected.
 # @keywords internal
-.heap_ratios <- function(x, s, weight = NULL) {
+.heap_ratios <- function(x, s, weight = NULL, boundary = "none", bin = 1) {
   maxage <- max(x, na.rm = TRUE)
   wc <- .wcount(x, maxage, weight)
   ratio <- expected <- setNames(rep(NA_real_, length(s)), as.character(s))
+  onesided <- setNames(rep(FALSE, length(s)), as.character(s))
+  low <- if (boundary == "lower") min(x, na.rm = TRUE) else NA_real_
   for (a in s) {
     bc <- as.character(a - 1); ac <- as.character(a + 1); hc <- as.character(a)
+    if (!is.na(low) && a == low) {
+      if (!ac %in% names(wc)) next
+      e <- bin * unname(wc[ac])
+      if (e > 0) {
+        expected[hc] <- e
+        ratio[hc] <- wc[hc] / e
+        onesided[hc] <- TRUE
+      }
+      next
+    }
     if (!bc %in% names(wc) || !ac %in% names(wc)) next
     e <- mean(c(wc[bc], wc[ac]))
     expected[hc] <- e
     ratio[hc] <- if (e > 0) wc[hc] / e else NA_real_
   }
-  list(ratio = ratio, expected = expected)
+  list(ratio = ratio, expected = expected, onesided = onesided)
 }
 
 # Uniformly shuffle candidate indices, then take the smallest prefix whose
@@ -78,9 +94,11 @@
   } else if (fit$method == "norm") {
     round(EnvStats::rnormTrunc(n, mean = center, sd = fit$sd, min = llow, max = lup))
   } else if (fit$method == "kernel") {
-    .sample_from_density(n, fit$density, llow, lup)
+    # ceiling(): a one-sided window starts at heap + 0.5 (integer bounds unchanged)
+    .sample_from_density(n, fit$density, ceiling(llow), lup)
   } else {
-    sample(llow:lup, n, replace = TRUE)
+    lo <- ceiling(llow)
+    if (lo == lup) rep(lo, n) else sample(lo:lup, n, replace = TRUE)
   }
 }
 
