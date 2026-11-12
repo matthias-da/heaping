@@ -1,3 +1,14 @@
+# JSSAM-2026-017 R2 -- distributional recovery + manuscript figures (Figures 1-3).
+# Two changes against the first revision of this script:
+#   * both corrections use the one-sided rule for the heap at the lower boundary
+#     (boundary = "lower"). boundary.bin = 0.5, because the ages are a rounded continuous
+#     variable, so that age 0 covers [0, 0.5) and is half as wide as age 1;
+#     BOUNDARY=none Rscript sim-distribution-R2.R reruns the grid without the rule (the R1
+#     setting) and writes only out-figs-R2-none.csv, for the before/after comparison;
+#   * the replications run in parallel (each sets its own seeds, so the result does not
+#     depend on the number of cores), and the printed table includes intensity 0.3.
+# Needs heaping >= 0.2.1. The earlier header follows.
+#
 # JSSAM-2026-017 R1 -- Workstream 3: distributional recovery + manuscript figures.
 # Extends the earlier version: adds the GAM (aggregated-smoothing) comparison arm,
 # a fine heaping-intensity grid with replication, the relabel-not-duplicate
@@ -43,13 +54,18 @@ intensities <- seq(0, 0.5, by = 0.025)
 nrep <- 25
 grid <- expand.grid(intensity = intensities, rep = seq_len(nrep))
 
-res <- do.call(rbind, Map(function(it, rp) {
+bnd <- list(boundary = Sys.getenv("BOUNDARY", "lower"), boundary.bin = 0.5)   # one-sided rule at age 0
+ncores <- as.integer(Sys.getenv("NCORES", max(1L, parallel::detectCores() - 2L)))
+
+res <- do.call(rbind, parallel::mcmapply(function(it, rp) {
   set.seed(as.integer(1000 * it + rp))
   h  <- relabel5(true_age, it)
-  s  <- correctHeaps(h, "5year", method = "lnorm", seed = rp)
+  s  <- correctHeaps(h, "5year", method = "lnorm", seed = rp,
+                     boundary = bnd$boundary, boundary.bin = bnd$boundary.bin)
   mo <- correctHeaps(h, "5year", model = age ~ z,
                      dataModel = data.frame(age = h, z = z),
-                     model.engine = "ranger", seed = rp)
+                     model.engine = "ranger", seed = rp,
+                     boundary = bnd$boundary, boundary.bin = bnd$boundary.bin)
   arms <- list(Heaped = counts(h), `Corrected (simple)` = counts(s),
                `Corrected (model)` = counts(mo), `Smoothed (GAM)` = gam_dist(h))
   do.call(rbind, lapply(names(arms), function(nm) {
@@ -57,7 +73,7 @@ res <- do.call(rbind, Map(function(it, rp) {
     data.frame(intensity = it, rep = rp, arm = nm,
                Whipple = whip_c(cnt), MAPE = mape(p, p_true), JSD = jsd(p, p_true))
   }))
-}, grid$intensity, grid$rep))
+}, grid$intensity, grid$rep, SIMPLIFY = FALSE, mc.cores = ncores))
 
 agg <- aggregate(cbind(Whipple, MAPE, JSD) ~ intensity + arm, res, mean)
 lev <- c("Heaped", "Corrected (simple)", "Corrected (model)", "Smoothed (GAM)")
@@ -78,11 +94,14 @@ mk <- function(yv, ylab, hline = NA) {
     theme_bw(base_size = 11) + theme(legend.position = "bottom")
 }
 
-ggsave("whipplesim.pdf", mk("Whipple", "Whipple index", 100), width = 6.5, height = 4.2)
-ggsave("jsdsim.pdf",     mk("JSD", "Jensen-Shannon divergence"), width = 6.5, height = 4.2)
-ggsave("mapesim.pdf",    mk("MAPE", "Mean absolute percentage error (%)"), width = 6.5, height = 4.2)
+if (bnd$boundary == "lower") {
+  ggsave("whipplesim.pdf", mk("Whipple", "Whipple index", 100), width = 6.5, height = 4.2)
+  ggsave("jsdsim.pdf",     mk("JSD", "Jensen-Shannon divergence"), width = 6.5, height = 4.2)
+  ggsave("mapesim.pdf",    mk("MAPE", "Mean absolute percentage error (%)"), width = 6.5, height = 4.2)
+}
 
 cat(sprintf("true-age Whipple = %.1f; n = %d; nrep = %d; %d intensities (0 to 0.5 by 0.025)\n",
             whip_c(counts(true_age)), length(true_age), nrep, length(intensities)))
-print(agg[agg$intensity %in% c(0, 0.1, 0.2, 0.3, 0.4, 0.5), ], row.names = FALSE)
-cat("\nFigures written: whipplesim.pdf jsdsim.pdf mapesim.pdf\n")
+print(agg[round(10 * agg$intensity, 6) %in% 0:5, ], row.names = FALSE)
+write.csv(agg, if (bnd$boundary == "lower") "out-figs-R2.csv" else "out-figs-R2-none.csv", row.names = FALSE)
+if (bnd$boundary == "lower") cat("\nFigures written: whipplesim.pdf jsdsim.pdf mapesim.pdf\n")

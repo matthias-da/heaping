@@ -1,3 +1,7 @@
+# JSSAM-2026-017 R2 -- sensitivity analysis (Table 5). Every correction uses the one-sided rule for the heap at the lower boundary
+# (boundary = "lower", boundary.bin = 0.5; see sim-distribution.R; needs heaping >= 0.2.1).
+# The earlier header follows.
+#
 # JSSAM-2026-017 R1 -- Workstream 4: sensitivity analysis (Reviewer 1.3).
 # Are the results robust to the design choices R1 named -- the truncated
 # distribution, the truncation width, the heaping interval, and the model
@@ -5,6 +9,8 @@
 # three, and the age-covariate-link recovery across model strategies.
 
 suppressMessages(library(heaping))
+.correctHeaps <- correctHeaps                          # one-sided rule at age 0 throughout
+correctHeaps  <- function(...) .correctHeaps(..., boundary = "lower", boundary.bin = 0.5)
 
 set.seed(2026)
 true_age <- round(rlnorm(12000, 2.466869, 1.652772)); true_age <- true_age[true_age < 93]
