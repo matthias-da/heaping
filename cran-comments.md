@@ -1,27 +1,22 @@
-# heaping 0.2.0 — submission comments
+# heaping 0.2.1 — submission comments
 
-Update from 0.1.0. Major changes (details in NEWS.md):
+Minor update from 0.2.0 (details in NEWS.md):
 
-* Redesigned model-based correction: `correctHeaps(model=, dataModel=)` now fits an
-  imputation model on the retained ("trusted") records and draws covariate-conditional
-  replacements; engine selectable via `model.engine = c("ranger", "lm")`. This is a
-  documented breaking change relative to 0.1.0.
-* New `correctHeapsMI()`: repeats the stochastic correction to produce multiple corrected
-  data sets for multiple-imputation inference.
-* Survey-weight support (`weight=`) for the correction functions and all heaping indices.
-* Help-page examples now introduce artificial heaping by relabelling (misreporting)
-  existing records rather than by duplication, matching the method's assumptions.
+* `correctHeaps()` gains `boundary = c("none", "lower")` and `boundary.bin`. With
+  `boundary = "lower"`, a heap at the smallest observed age (typically age 0), which has no
+  neighbour below it and was left uncorrected so far, is corrected by a one-sided rule.
+  `correctHeapsMI()` passes both arguments through.
+* The default `boundary = "none"` reproduces the results of 0.2.0, so existing code is
+  unaffected.
+* Fix: the uniform method now handles a window that contains a single age.
 
 ## Test environments
 
-* Local: macOS (Apple Silicon), R 4.5.2
+* Local: macOS (Apple Silicon), R 4.5.2, `R CMD check --as-cran`
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
-
-* "checking for future file timestamps ... unable to verify current time" — local
-  time-server artifact; not reproducible on CRAN machines.
+0 errors | 0 warnings | 0 notes
 
 ## Reverse dependencies
 
